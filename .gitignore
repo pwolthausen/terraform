@@ -1,3 +1,4 @@
 variables.*
 credentials*
 workEnv.*
+.terraform/
