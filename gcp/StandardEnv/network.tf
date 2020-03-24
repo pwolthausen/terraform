@@ -53,11 +53,11 @@ resource "google_compute_firewall" "bastion-access" {
   }
 }
 
-resource "google_compute_firewall" "cloudops-access" {
-  name          = "cloudops-access"
+resource "google_compute_firewall" "special-access" {
+  name          = "special-access"
   network       = "${google_compute_network.newVPC.self_link}"
-  source_ranges = "${var.cloudopsIPs}"
-  description   = "Allow access for cloudops users"
+  source_ranges = "${var.specialIPs}"
+  description   = "Allow access for special users"
 
   allow {
     protocol = "all"
