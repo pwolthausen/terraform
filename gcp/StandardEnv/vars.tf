@@ -43,12 +43,14 @@ variable "serviceCIDR" {
   default = [""]
 }
 
-variable "cloudopsIPs" {
-  type    = "list"
-  default = ["67.218.217.42/32", "45.72.188.74/32", "74.121.244.4/32", "74.121.244.3/32"]
+variable "specialIPs" {
+  type        = "list"
+  description = "List of IPs to allow through general firewalls"
+  default     = ["x.x.x.x"]
 }
 
 variable "bastionSourceIP" {
-  type    = "list"
-  default = ["0.0.0.0/0"]
+  type        = "list"
+  description = "IPs to allow connecting to the bastion"
+  default     = ["0.0.0.0/0"]
 }
