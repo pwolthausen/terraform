@@ -1,4 +1,2 @@
-variables.*
-credentials*
-workEnv.*
 .terraform/
+*.backup
