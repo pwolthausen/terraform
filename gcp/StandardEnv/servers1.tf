@@ -1,8 +1,3 @@
-provider "google" {
-  project     = "${var.projectID}"
-  credentials = "${file("credentials.json")}"
-}
-
 resource "google_compute_health_check" "servers1_autohealing" {
   name                = "${var.servers1}-HC"
   healthy_threshold   = 2
@@ -35,16 +30,15 @@ resource "google_compute_health_check" "servers1_autohealing" {
   # }
 }
 
-##Define the template to be used by the first MIG. If a template change is required, copy this resource and make the changes, do not update template resources
 data "google_compute_image" "my_image" {
   family  = "${var.servers1_image_family}"
   project = "${var.servers1_image_project}"
 }
 
 data "google_compute_image" "blank" {
-  family    = "blank"
+  family = "blank"
 }
-
+##Define the template to be used by the first MIG. If a template change is required, copy this resource and make the changes, do not update template resources
 resource "google_compute_instance_template" "servers1_template" {
   name         = "${var.servers1}-template"
   tags         = [""]
@@ -54,16 +48,16 @@ resource "google_compute_instance_template" "servers1_template" {
     source_image = "${google_compute_image.my_image.self_link}"
     auto_delete  = false
     boot         = true
-    disk_size_gb = ""
-    disk_type =
+    disk_size_gb = "${var.server1_bootdisk_size}"
+    disk_type    = "pd-standard"
   }
 
   disk {
-    auto-delete = false
-    boot = false
+    auto-delete  = true
+    boot         = false
     source_image = "${google_compute_image.blank.self_link}"
-    disk_size_gb = ""
-    disk_type = ""
+    disk_size_gb = "${var.server1_datadisk_size}"
+    disk_type    = "pd-standard"
   }
 
   labels {
@@ -74,7 +68,7 @@ resource "google_compute_instance_template" "servers1_template" {
   network_interface {
     network = "${google_compute_network.newVPC.self_link}"
   }
-
+  ##Note the servers are created without scopes to start with. If the server will need either scopes or a custom service account, this section will need to be changed
   service_account {
     scopes = [""]
   }
@@ -84,7 +78,7 @@ resource "google_compute_instance_template" "servers1_template" {
 resource "google_compute_instance_group_manager" "servers1" {
   name               = "${var.servers1}-igm"
   base_instance_name = "${var.servers1}"
-  zone               = "${var.zone}"
+  zone               = "${var.zone1}"
 
   target_size = "${var.server1_replicas}"
 

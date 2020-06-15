@@ -1,17 +1,12 @@
-provider "google" {
-  project     = "${var.projectID}"
-  credentials = "${file("credentials.json")}"
-}
-
 ##Create network, subnets, and firewall rules
 resource "google_compute_network" "newVPC" {
-  name                    = "${var.networkName}"
+  name                    = "${var.projectID}"
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "newSubnets" {
-  name                     = "${var.networkName}-${var.region}"
-  region                   = "${var.region}"
+  name                     = "${var.networkName}-${var.region1}"
+  region1                  = "${var.region1}"
   network                  = "${google_compute_network.newVPC.self_link}"
   ip_cidr_range            = "${var.ipCIDR[0]}"
   private_ip_google_access = true
@@ -32,7 +27,7 @@ resource "google_compute_subnetwork" "newSubnets" {
 resource "google_compute_firewall" "allow-internal" {
   name          = "allow-internal"
   network       = "${google_compute_network.newVPC.self_link}"
-  source_ranges = "${var.ipCIDR}"
+  source_ranges = "${concat(var.ipCIDR, var.serviceCIDR, var.podCIDR)}"
   description   = "Rule to allow all traffic within the GCP VPC"
 
   allow {
@@ -81,7 +76,7 @@ resource "google_compute_firewall" "allow-web-traffic" {
 
   allow {
     protocol = "tcp"
-    ports    = ["80","443","8080"]
+    ports    = ["80", "443", "8080"]
   }
 
   source_ranges = ["0.0.0.0/0"]
@@ -95,8 +90,8 @@ resource "google_compute_vpn_gateway" "vpn_gateway" {
 }
 
 resource "google_compute_address" "vpn_static_ip" {
-  name   = "vpn-1-static-ip"
-  region = "${var.region}"
+  name    = "vpn-1-static-ip"
+  region1 = "${var.region1}"
 }
 
 resource "google_compute_forwarding_rule" "fr_esp" {
