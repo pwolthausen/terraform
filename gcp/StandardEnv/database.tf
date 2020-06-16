@@ -1,13 +1,13 @@
 resource "google_sql_database_instance" "backend_db" {
-  name             = "myDatabase"
+  name             = "my-database-1"
   region           = "${var.region1}"
   database_version = "${var.db_version}"
-  root_password    = "${var.db_root_password}"
+  # root_password    = "${var.db_root_password}"
 
   settings {
     tier              = "${var.db_tier}"
     availability_type = "${var.db_availability}"
-    labels {
+    user_labels = {
       env = "${var.servers1_env}"
     }
 
@@ -16,10 +16,13 @@ resource "google_sql_database_instance" "backend_db" {
       private_network = "${google_compute_network.newVPC.id}"
     }
   }
+  depends_on = [
+    "google_service_networking_connection.private_vpc_connection"
+  ]
 }
 
+## Create private service connection
 resource "google_compute_global_address" "db_private_ip" {
-  provider = google-beta
 
   name          = "db-private-ip"
   purpose       = "VPC_PEERING"
@@ -29,9 +32,8 @@ resource "google_compute_global_address" "db_private_ip" {
 }
 
 resource "google_service_networking_connection" "private_vpc_connection" {
-  provider = google-beta
 
-  network                 = "${google_compute_network.private_network.id}"
+  network                 = "${google_compute_network.newVPC.id}"
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = ["${google_compute_global_address.db_private_ip.name}"]
 }

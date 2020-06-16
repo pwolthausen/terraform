@@ -31,7 +31,7 @@ variable "servers1_role" {
 }
 variable "server1_replicas" {
   description = "Set the number of instances that the MIG will maintain"
-  type        = "number"
+  type        = number
   default     = 1
 }
 
