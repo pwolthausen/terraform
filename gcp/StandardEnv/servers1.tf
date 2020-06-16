@@ -51,7 +51,6 @@ resource "google_compute_instance_template" "server1_template" {
   disk {
     auto_delete  = true
     boot         = false
-    source_image = "${data.google_compute_image.my_image.self_link}"
     disk_size_gb = "${var.server1_datadisk_size}"
     disk_type    = "pd-standard"
   }
