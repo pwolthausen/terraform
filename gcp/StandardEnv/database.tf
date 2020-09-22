@@ -1,3 +1,10 @@
+resource "google_service_networking_connection" "private_vpc_connection" {
+
+  network                 = "${google_compute_network.newVPC.id}"
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = ["${google_compute_global_address.db_private_ip.name}"]
+}
+
 resource "google_sql_database_instance" "backend_db" {
   name             = "my-database-1"
   region           = "${var.region1}"
@@ -29,11 +36,4 @@ resource "google_compute_global_address" "db_private_ip" {
   address_type  = "INTERNAL"
   prefix_length = 24
   network       = "${google_compute_network.newVPC.id}"
-}
-
-resource "google_service_networking_connection" "private_vpc_connection" {
-
-  network                 = "${google_compute_network.newVPC.id}"
-  service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = ["${google_compute_global_address.db_private_ip.name}"]
 }
