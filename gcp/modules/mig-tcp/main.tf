@@ -4,7 +4,7 @@ resource "google_compute_health_check" "servers1_autohealing" {
   unhealthy_threshold = 2
   timeout_sec         = 5
 
-  http_health_check {
+  tcp_health_check {
     request_path = var.hcpath
     response     = var.response
     port         = var.hcport
@@ -29,7 +29,7 @@ resource "google_compute_instance_template" "server_template" {
   }
   ##Note the servers are created without scopes to start with. If the server will need either scopes or a custom service account, this section will need to be changed
   service_account {
-    scopes = ["logging-write"]
+    scopes = var.scopes
   }
 }
 
@@ -56,11 +56,11 @@ resource "google_compute_instance_template" "serverplusdisk_template" {
     network    = var.network
     subnetwork = var.subnet
   }
-  metadata_startup_script = ""
+  # metadata_startup_script = ""
 
   ##Note the servers are created without scopes to start with. If the server will need either scopes or a custom service account, this section will need to be changed
   service_account {
-    scopes = ["logging-write"]
+    scopes = var.scopes
   }
 }
 
@@ -115,7 +115,7 @@ resource "google_compute_instance_group_manager" "serverplusdisk" {
 }
 
 
-####Load balancer for MIG
+####TCP Load Balancer
 ##HTTP health check
 resource "google_compute_http_health_check" "glb" {
   name         = "${var.name}-hc"

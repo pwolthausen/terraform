@@ -1,0 +1,54 @@
+nodes:
+%{ for index, ip in master_ips ~}
+- address: ${ip}
+  internal_address: ${master_private_ips[index]}
+  hostname_override: ${cluster_name}-master-${index}
+  port: 22
+  user: rke-user
+  role:
+  - controlplane
+  - etcd
+  labels:
+    role: leader
+%{ endfor ~}
+%{ for index, ip in worker_ips ~}
+- address: ${ip}
+  port: 22
+  internal_address: ${worker_private_ips[index]}
+  hostname_override: ${cluster_name}-worker-${index}
+  role:
+  - worker
+  user: rke-user
+  labels:
+    node: ingress
+    role: worker
+%{ endfor ~}
+%{ for index, ip in worker_st_ips ~}
+- address: ${ip}
+  port: 22
+  internal_address: ${worker_st_private_ips[index]}
+  hostname_override: ${cluster_name}-worker-st-${index}
+  role:
+  - worker
+  user: rke-user
+  labels:
+    node: data
+    role: worker
+  taints:
+    - key: "data"
+      operator: "Equal"
+      value: "storage"
+      effect: "NoSchedule"
+%{ endfor ~}
+ssh_key_path: ~/.ssh/${cluster_name}
+cluster_name: ${cluster_name}
+kubernetes_version: ${k8s_version}
+authentication:
+  sans:
+    - ${var.cluster_name}
+ingress:
+  provider: ${k8s_ingress}
+  node_selector:
+    node: ingress
+network:
+  plugin: ${k8s_cni}

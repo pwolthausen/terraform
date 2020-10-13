@@ -7,11 +7,11 @@ variable "replicas" {
 }
 variable "machine_type" {}
 variable "image" {}
-variable "disk1_size" {
+variable "disk1_type" {
   default = "pd-standard"
 }
-variable "disk1_type" {
-  default = 20
+variable "disk1_size" {
+  default = 10
 }
 variable "disk2" {
   default     = false
@@ -21,21 +21,24 @@ variable "disk2_size" {
   default = 100
 }
 variable "disk2_type" {
-  default = ""
+  default = "pd-standard"
 }
 variable "tags" {
   type    = list
   default = [""]
 }
-
 variable "hcpath" {
   default     = "/"
   description = "Path used by the health check for auto healing."
 }
 variable "hcport" {
   default     = 80
-  description = "HTTP Port used for health check"
+  description = "Port used for TCP health check"
 }
 variable "response" {
-  default = "200"
+  default = ""
+}
+variable "scopes" {
+  type    = list
+  default = ["logging-write"]
 }
