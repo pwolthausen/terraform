@@ -1,3 +1,4 @@
+````
 module "rke_cluster" {
   cluster_name =
   network      =
@@ -13,3 +14,4 @@ module "rke_cluster" {
   worker_st_disk_size      =
   worker_st_data_disk_size =
 }
+````
