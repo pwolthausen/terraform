@@ -11,17 +11,18 @@ resource "google_compute_subnetwork" "newSubnets" {
   ip_cidr_range            = "${var.ipCIDR[0]}"
   private_ip_google_access = true
 
-  ##Block for secondary ranges if required.
-  ###Should always be used if creating a GKE cluster
-  # secondary_ip_range = [{
-  #   range_name    = "pod-cidr"
-  #   ip_cidr_range = "${var.podCIDR}"
-  # },
-  #   {
-  #     range_name    = "service-cidr"
-  #     ip_cidr_range = "${var.serviceCIDR[0]}"
-  #   },
-  # ]
+  #Block for secondary ranges if required.
+  ##Should always be used if creating a GKE cluster
+  secondary_ip_range = [
+    {
+      range_name    = "pod-cidr"
+      ip_cidr_range = "${var.podCIDR}"
+    },
+    {
+      range_name    = "service-cidr"
+      ip_cidr_range = "${var.serviceCIDR[0]}"
+    },
+  ] 
 }
 
 resource "google_compute_firewall" "allow-internal" {

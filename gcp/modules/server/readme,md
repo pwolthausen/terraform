@@ -1,0 +1,15 @@
+```
+module "gcp-server" {
+    source = ""
+
+    serverName     = 
+    env            = 
+    zone           = 
+    image          = 
+    machine_type   = 
+    root_disk      = 
+    addDisk        =
+    snapshotPolicy = 
+    network_if     = 
+    tags           = 
+}

@@ -97,7 +97,7 @@ resource "google_compute_instance_group_manager" "servers1" {
 }
 
 ####Load balancer for servers1s
-##Global IP for GLB
+
 resource "google_compute_global_address" "servers1" {
   name = "${var.servers1}"
 }
@@ -108,17 +108,17 @@ resource "google_compute_global_forwarding_rule" "servers1" {
   port_range = "80"
   ip_address = "${google_compute_global_address.servers1.address}"
 }
-##targetHttpProxy
+
 resource "google_compute_target_http_proxy" "servers1" {
   name    = "${var.servers1}"
   url_map = "${google_compute_url_map.servers1.self_link}"
 }
-##urlMap
+
 resource "google_compute_url_map" "servers1" {
   name            = "${var.servers1}"
   default_service = "${google_compute_backend_service.servers1.self_link}"
 }
-##Backend service
+
 resource "google_compute_backend_service" "servers1" {
   name          = "${var.servers1}"
   health_checks = ["${google_compute_http_health_check.servers1.self_link}"]
@@ -126,7 +126,7 @@ resource "google_compute_backend_service" "servers1" {
     group = "${google_compute_instance_group_manager.servers1.self_link}"
   }
 }
-##HTTP health check
+
 resource "google_compute_http_health_check" "servers1" {
   name         = "${var.servers1}-hc"
   request_path = "/"

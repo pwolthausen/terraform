@@ -1,38 +1,33 @@
 ##Required variables
 variable "serverName" {}
 variable "zone" {}
-variable "subnet" {}
 variable "machine_type" {}
-variable "disk1_size" {}
+variable "root_disk" {}
 variable "snapshotPolicy" {
   description = "the name of a snapshot schedule policy in the same region"
 }
 variable "image" {}
-variable "env" {
-  description = "Must be either 'prod' or 'replica'"
-  # validation {
-  #   condition     = contains(["prod", "replica"], var.env)
-  #   error_message = "Variable 'env' must be one of 'prod' or 'replica'"
-  # }
-}
+variable "env" {}
 
-##Optional variables
-variable "tag" {
+variable "tags" {
   description = "network tags assigned to the vm"
   type        = list
   default     = [""]
 }
 
 variable "addDisk" {
-  description = "If set to true, will add a second disk to the instance"
-  default     = false
+  type = map(object({
+    size = number
+    type = string
+  }))
+  description = "defines the additional disks"
+  default = {}
 }
 
-variable "disk2_size" {
-  description = "Can only be set if the 'addDisk' is set to true"
-  default     = 100
-}
-
-variable "intip" {
-  default = ""
+variable "network_if" {
+  type = map(object({
+    subnet      = string
+    internal_ip = string
+  }))
+  description = "defines the network interfaces used for the instance. Must contain at least 1"
 }
