@@ -1,29 +1,29 @@
 ##Set provider config
 provider "google" {
-  project     = "${var.projectID}"
+  project     = var.projectID
   credentials = "${file("credentials.json")}"
 }
 
 ##Create network, subnets,, and firewall rules
 resource "google_compute_network" "newVPC" {
-  name                    = "${var.networkName}"
+  name                    = var.networkName
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "dublinSubnet" {
   name                     = "dublin"
   region                   = "northamerica-northeast1"
-  network                  = "${google_compute_network.newVPC.self_link}"
-  ip_cidr_range            = "${var.ipCIDR[0]}"
+  network                  = google_compute_network.newVPC.self_link
+  ip_cidr_range            = var.ipCIDR[0]
   private_ip_google_access = true
 
   secondary_ip_range = [{
     range_name    = "pod-cidr"
-    ip_cidr_range = "${var.podCIDR[0]}"
+    ip_cidr_range = var.podCIDR[0]
   },
     {
       range_name    = "service-cidr"
-      ip_cidr_range = "${var.serviceCIDR[0]}"
+      ip_cidr_range = var.serviceCIDR[0]
     },
   ]
 }
@@ -31,21 +31,21 @@ resource "google_compute_subnetwork" "dublinSubnet" {
 resource "google_compute_subnetwork" "belfastSubnet" {
   name                     = "belfast"
   region                   = "northamerica-northeast1"
-  network                  = "${google_compute_network.newVPC.self_link}"
-  ip_cidr_range            = "${var.ipCIDR[1]}"
+  network                  = google_compute_network.newVPC.self_link
+  ip_cidr_range            = var.ipCIDR[1]
   private_ip_google_access = true
 
   secondary_ip_range = [{
     range_name    = "pod-cidr"
-    ip_cidr_range = "${var.podCIDR[1]}"
+    ip_cidr_range = var.podCIDR[1]
   },
     {
       range_name    = "service-cidr1"
-      ip_cidr_range = "${var.serviceCIDR[1]}"
+      ip_cidr_range = var.serviceCIDR[1]
     },
     {
       range_name    = "service-cidr2"
-      ip_cidr_range = "${var.serviceCIDR[2]}"
+      ip_cidr_range = var.serviceCIDR[2]
     },
   ]
 }
@@ -53,30 +53,30 @@ resource "google_compute_subnetwork" "belfastSubnet" {
 resource "google_compute_subnetwork" "corkSubnet" {
   name                     = "cork"
   region                   = "us-east1"
-  network                  = "${google_compute_network.newVPC.self_link}"
-  ip_cidr_range            = "${var.ipCIDR[2]}"
+  network                  = google_compute_network.newVPC.self_link
+  ip_cidr_range            = var.ipCIDR[2]
   private_ip_google_access = true
 }
 
 resource "google_compute_subnetwork" "galwaySubnet" {
   name                     = "galway"
   region                   = "us-central1"
-  network                  = "${google_compute_network.newVPC.self_link}"
-  ip_cidr_range            = "${var.ipCIDR[3]}"
+  network                  = google_compute_network.newVPC.self_link
+  ip_cidr_range            = var.ipCIDR[3]
   private_ip_google_access = true
 }
 
 resource "google_compute_subnetwork" "sligoSubnet" {
   name                     = "sligo"
   region                   = "us-west1"
-  network                  = "${google_compute_network.newVPC.self_link}"
-  ip_cidr_range            = "${var.ipCIDR[4]}"
+  network                  = google_compute_network.newVPC.self_link
+  ip_cidr_range            = var.ipCIDR[4]
   private_ip_google_access = true
 }
 
 resource "google_compute_firewall" "allow-web-traffic" {
   name    = "allow-web-traffic"
-  network = "${google_compute_network.newVPC.self_link}"
+  network = google_compute_network.newVPC.self_link
 
   allow {
     protocol = "tcp"
@@ -89,7 +89,7 @@ resource "google_compute_firewall" "allow-web-traffic" {
 
 resource "google_compute_firewall" "bastion-ssh" {
   name    = "bastion-ssh"
-  network = "${google_compute_network.newVPC.self_link}"
+  network = google_compute_network.newVPC.self_link
 
   allow {
     protocol = "tcp"
@@ -102,7 +102,7 @@ resource "google_compute_firewall" "bastion-ssh" {
 
 resource "google_compute_firewall" "allow-internal" {
   name    = "allow-internal"
-  network = "${google_compute_network.newVPC.self_link}"
+  network = google_compute_network.newVPC.self_link
 
   allow {
     protocol = "all"
@@ -143,17 +143,17 @@ resource "google_compute_instance" "bastionHost" {
   }
 
   network_interface {
-    network    = "${google_compute_network.newVPC.self_link}"
-    subnetwork = "${google_compute_subnetwork.belfastSubnet.self_link}"
+    network    = google_compute_network.newVPC.self_link
+    subnetwork = google_compute_subnetwork.belfastSubnet.self_link
 
     access_config {
-      nat_ip = "${google_compute_address.bastionip.address}"
+      nat_ip = google_compute_address.bastionip.address
     }
   }
 
   metadata {
-    "block-project-ssh-keys" = "true"
-    "enable-oslogin"         = "true"
+    block-project-ssh-keys = "true"
+    enable-oslogin         = "true"
   }
 
   service_account {
@@ -165,8 +165,8 @@ resource "google_compute_instance" "bastionHost" {
 resource "google_container_cluster" "sheehy" {
   name                      = "sheehy"
   location                  = "northamerica-northeast1"
-  network                   = "${google_compute_network.newVPC.self_link}"
-  subnetwork                = "${google_compute_subnetwork.dublinSubnet.self_link}"
+  network                   = google_compute_network.newVPC.self_link
+  subnetwork                = google_compute_subnetwork.dublinSubnet.self_link
   remove_default_node_pool  = true
   initial_node_count        = 1
   default_max_pods_per_node = 55
@@ -182,7 +182,7 @@ resource "google_container_cluster" "sheehy" {
       display_name = "access from within the GCP project"
     },
       {
-        cidr_block   = "${var.mypcip}"
+        cidr_block   = var.mypcip
         display_name = "home PC"
       },
     ]
@@ -190,18 +190,18 @@ resource "google_container_cluster" "sheehy" {
 
   private_cluster_config {
     enable_private_nodes   = true
-    master_ipv4_cidr_block = "${var.masterCIDR[0]}"
+    master_ipv4_cidr_block = var.masterCIDR[0]
   }
 
-  # vertical_pod_autoscaling {
-  #   enabled = true
-  # }
+  vertical_pod_autoscaling {
+    enabled = true
+  }
 }
 
 resource "google_container_node_pool" "kube-system" {
   name               = "kubesystem"
   location           = "northamerica-northeast1"
-  cluster            = "${google_container_cluster.sheehy.name}"
+  cluster            = google_container_cluster.sheehy.name
   initial_node_count = 2
 
   autoscaling {
@@ -227,7 +227,7 @@ resource "google_container_node_pool" "kube-system" {
 resource "google_container_node_pool" "narwhal" {
   name               = "narwhal"
   location           = "northamerica-northeast1"
-  cluster            = "${google_container_cluster.sheehy.name}"
+  cluster            = google_container_cluster.sheehy.name
   initial_node_count = 2
 
   autoscaling {
@@ -245,7 +245,7 @@ resource "google_container_node_pool" "narwhal" {
 
     labels {
       key   = "workloads"
-      value = "kube-system"
+      value = "apps"
     }
 
     taint {

@@ -21,3 +21,6 @@ variable "masterCIDR" {
   type    = "list"
   default = ["10.16.240.0/28", "10.16.240.16/28", "10.16.240.32/28", "10.16.240.48/28"]
 }
+variable "networkName" {
+  default = "myvpc"
+}
