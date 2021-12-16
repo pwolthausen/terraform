@@ -23,7 +23,7 @@ module "vpc_test_vpn_peer_routes" {
   routes = []
 }
 
-resource "google_compute_address" "test_hub_vpn_gw" {
+resource "google_compute_global_address" "test_hub_vpn_gw" {
   project = var.project_id
   region  = var.region
 
@@ -34,18 +34,18 @@ resource "google_compute_address" "test_hub_vpn_gw" {
 
 module "vpn_hub" {
   source  = "terraform-google-modules/vpn/google"
-  version = "~> 1.2.0"
+  version = "~> 2.1.0"
 
   project_id         = var.project_id
-  network            = data.google_compute_network.hub_vpc.network_id
+  network            = data.google_compute_network.hub_vpc.id
   region             = "us-central1"
   gateway_name       = "test-hub-vpn-gw"
   tunnel_name_prefix = "test-hub"
   shared_secret      = data.google_secret_manager_secret_version.vpn_secret.secret_data
   tunnel_count       = 1
-  peer_ips           = [google_compute_address.test_vpc_vpn_gw.address]
+  peer_ips           = [google_compute_global_address.test_vpc_vpn_gw.address]
   peer_asn           = ["65101"]
-  vpn_gw_ip          = google_compute_address.test_hub_vpn_gw.address
+  vpn_gw_ip          = google_compute_global_address.test_hub_vpn_gw.address
 
   cr_enabled = true
   cr_name = "test_hub_vpn"
@@ -53,7 +53,7 @@ module "vpn_hub" {
   bgp_remote_session_range = ["169.254.0.2", "169.254.1.2"]
 }
 
-resource "google_compute_address" "test_vpc_vpn_gw" {
+resource "google_compute_global_address" "test_vpc_vpn_gw" {
   project = var.project_id
   region  = var.region
 
@@ -63,7 +63,7 @@ resource "google_compute_address" "test_vpc_vpn_gw" {
 
 module "vpn_test" {
   source  = "terraform-google-modules/vpn/google"
-  version = "~> 1.2.0"
+  version = "~> 2.1.0"
 
   project_id         = var.project_id
   network            = module.vpc_test_vpn_peer_routes.network_id
@@ -72,9 +72,9 @@ module "vpn_test" {
   tunnel_name_prefix = "test-vpc"
   shared_secret      = data.google_secret_manager_secret_version.vpn_secret.secret_data
   tunnel_count       = 1
-  peer_ips           = [google_compute_address.test_hub_vpn_gw.address]
+  peer_ips           = [google_compute_global_address.test_hub_vpn_gw.address]
   peer_asn           = ["65101"]
-  vpn_gw_ip          = google_compute_address.test_vpc_vpn_gw.address
+  vpn_gw_ip          = google_compute_global_address.test_vpc_vpn_gw.address
 
   cr_enabled = true
   cr_name = "test_vpc_vpn"
