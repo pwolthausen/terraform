@@ -9,3 +9,8 @@ variable "region" {
 variable "project_id" {
     type = string
 }
+
+variable "sql_auth_networks" {
+  type    = map(any)
+  default = {}
+}
