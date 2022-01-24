@@ -37,7 +37,7 @@ variable "machine_type" {
 
 variable "subnet" {
     type = string
-    default = prod
+    default = "prod"
 }
 
 variable "domain_user" {
