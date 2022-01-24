@@ -13,7 +13,7 @@ data google_compute_network cartdotcom {
     name = "cartdotcom"
 }
 
-data "google_compute_subnetwork" "prod" {
+data google_compute_subnetwork prod {
   project = var.project_id
   name    = var.subnet
   region  = var.region
