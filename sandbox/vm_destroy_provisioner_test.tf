@@ -59,10 +59,14 @@ resource "google_compute_instance" "default" {
   provisioner "remote-exec" {
     command = "Write-Host Goodnight"
     interpreter = ["PowerShell"]
+    triggers {
+        user = var.domain_user
+        password = var.domain_password
+    }
     connection {
       type     = "winrm"
-      user     = var.domain_user
-      password = var.domain_password
+      user     = self.provisioner.triggers.user
+      password = self.provisioner.triggers.password
     }
     when = destroy
     on_failure = continue
