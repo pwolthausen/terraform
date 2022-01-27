@@ -20,8 +20,9 @@ resource "google_compute_instance" "default" {
   machine_type = var.machine_type
   zone         = "${var.region}-c"
 
-  tags   = ["cart-test"]
-  labels = var.labels
+  tags     = ["cart-test"]
+  labels   = var.labels
+  hostname = "${each.key}.${var.ac_domain}"
 
 #   allow_stopping_for_update = var.allow_stopping_for_update
 
@@ -56,22 +57,23 @@ resource "google_compute_instance" "default" {
 #     windows-startup-script-cmd    = var.startup_cmd
 #   }
 
-  provisioner "remote-exec" {
-    command = "Write-Host Goodnight"
-    interpreter = ["PowerShell"]
-    triggers {
-        user = var.domain_user
-        password = var.domain_password
-    }
-    connection {
-      type     = "winrm"
-      user     = self.provisioner.triggers.user
-      password = self.provisioner.triggers.password
-    }
+  provisioner "local-exec" {
+    command = ["Remove-ADComputer -Credentials -Server ${self.hostname}"]
+    interpreter = ["powershell"]
     when = destroy
     on_failure = continue
   }
 }
+
+resource "null_resource" "managed_ad_join" {
+  provisioner "local-exec" {
+    command = "yes | gcloud --project ${var.project_id} compute instances list"
+  }
+  triggers = {
+    version = google_sql_database_instance.app_db[count.index].settings[0].version
+  }
+}
+
 
 resource "google_compute_address" "external_static" {
   project = var.project_id
