@@ -69,3 +69,21 @@ variable "snapshotPolicy" {
   description = "the name of a snapshot schedule policy in the same region"
   default     = null
 }
+
+variable "metadata" {
+  type        = map(string)
+  default     = {}
+  description = "Metadata to add to the instance, useful for startup scripts"
+}
+
+variable "labels" {
+  type        = map(string)
+  default     = {}
+  description = "Labels to apply to the VM and all the associated resources"
+}
+
+variable "allow_stopping_for_update" {
+  type        = bool
+  default     = true
+  description = "Defines whether the instance can be stopped for updates. Should be set to false for sensitive workloads"
+}

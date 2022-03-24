@@ -7,6 +7,7 @@ resource "google_compute_disk" "root" {
   image   = var.image
   size    = var.root_disk_size
   type    = var.root_disk_type
+  labels  = var.labels
 }
 
 resource "google_compute_disk_resource_policy_attachment" "root" {
@@ -15,6 +16,7 @@ resource "google_compute_disk_resource_policy_attachment" "root" {
   zone    = var.zone
   name    = var.snapshotPolicy
   disk    = google_compute_disk.root.name
+  labels  = var.labels
 }
 
 ##Note that additional disks do not require an image
@@ -25,6 +27,7 @@ resource "google_compute_disk" "add_disk" {
   zone     = var.zone
   size     = each.value.size
   type     = each.value.type
+  labels   = var.labels
 }
 
 resource "google_compute_disk_resource_policy_attachment" "add_disk" {
@@ -33,6 +36,7 @@ resource "google_compute_disk_resource_policy_attachment" "add_disk" {
   zone     = var.zone
   name     = var.snapshotPolicy
   disk     = google_compute_disk.add_disk[each.key].name
+  labels   = var.labels
 }
 
 ##+#+#+#+#+#+#+#+#+#+##+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
@@ -43,8 +47,9 @@ resource "google_compute_instance" "server" {
   zone         = var.zone
   machine_type = var.machine_type
   tags         = var.tags
+  hostname     = var.hostname != "" ? var.hostname : null
 
-  allow_stopping_for_update = true
+  allow_stopping_for_update = var.allow_stopping_for_update
 
   boot_disk {
     source = google_compute_disk.root.self_link
@@ -69,6 +74,9 @@ resource "google_compute_instance" "server" {
       }
     }
   }
+
+  metadata = var.metadata
+  labels   = var.labels
 
   service_account {
     scopes = ["logging-write"]
