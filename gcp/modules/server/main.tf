@@ -1,30 +1,35 @@
 ##+#+#+#+#+#+#+#+#+#+##+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 #disks
 resource "google_compute_disk" "root" {
-  name  = "${var.serverName}-${var.env}"
-  zone  = var.zone
-  image = var.image
-  size  = var.root_disk
-  type  = "pd-ssd"
+  project = var.project_id
+  name    = "${var.serverName}-root"
+  zone    = var.zone
+  image   = var.image
+  size    = var.root_disk_size
+  type    = var.root_disk_type
 }
 
 resource "google_compute_disk_resource_policy_attachment" "root" {
-  zone = var.zone
-  name = var.snapshotPolicy
-  disk = google_compute_disk.server-1.name
+  count = var.snapshotPolicy == null ? 0 : 1
+  project = var.project_id
+  zone    = var.zone
+  name    = var.snapshotPolicy
+  disk    = google_compute_disk.root.name
 }
 
 ##Note that additional disks do not require an image
 resource "google_compute_disk" "add_disk" {
   for_each = var.addDisk
-  name     = "${var.serverName}-data-${var.env}"
+  project  = var.project_id
+  name     = "${var.serverName}-data-${each.key}"
   zone     = var.zone
   size     = each.value.size
   type     = each.value.type
 }
 
 resource "google_compute_disk_resource_policy_attachment" "add_disk" {
-  for_each = var.addDisk
+  for_each = var.snapshotPolicy == null ? {} : var.addDisk
+  project  = var.project_id
   zone     = var.zone
   name     = var.snapshotPolicy
   disk     = google_compute_disk.add_disk[each.key].name
@@ -33,7 +38,8 @@ resource "google_compute_disk_resource_policy_attachment" "add_disk" {
 ##+#+#+#+#+#+#+#+#+#+##+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 #server
 resource "google_compute_instance" "server" {
-  name         = "${var.env}-${var.serverName}"
+  project      = var.project_id
+  name         = var.serverName
   zone         = var.zone
   machine_type = var.machine_type
   tags         = var.tags
@@ -51,15 +57,46 @@ resource "google_compute_instance" "server" {
     }
   }
 
-  dynamic "network_interface" {
-    for_each = var.network_if
-    content {
-      subnetwork = each.value.subnet
-      network_ip = each.value.internal_ip
+  network_interface {
+    network    = var.network
+    network_ip = google_compute_address.internal_static.address
+    subnetwork = var.subnet == null ? null : "projects/${local.network_project}/regions/${var.region}/subnetworks/${var.subnet}"
+    dynamic "access_config" {
+      for_each = toset(google_compute_address.external_static)
+      content {
+        nat_ip       = access_config.value.address
+        network_tier = "PREMIUM"
+      }
     }
   }
 
   service_account {
     scopes = ["logging-write"]
   }
+}
+
+##+#+#+#+#+#+#+#+#+#+##+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
+# resources will create inetrnal and external static IPs which will be attached to each VM.
+resource "google_compute_address" "internal_static" {
+  project = var.project_id
+  region  = var.region
+
+  name         = "${var.serverName}-int-ip"
+  subnetwork   = "projects/${local.network_project}/regions/${var.region}/subnetworks/${var.subnet}"
+  address_type = "INTERNAL"
+  address      = var.internal_ip
+}
+
+resource "google_compute_address" "external_static" {
+  count   = var.external_ip != null ? 1 : 0
+  project = var.project_id
+  region  = var.region
+
+  name         = "${var.serverName}-ext-ip"
+  address_type = "EXTERNAL"
+}
+
+locals {
+  network         = var.network == null ? null : split("/", var.network)
+  network_project = var.network == null ? null : local.network[1]
 }
