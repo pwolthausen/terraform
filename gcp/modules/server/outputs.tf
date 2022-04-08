@@ -12,6 +12,6 @@ output "instance_name" {
   value       = google_compute_instance.server.name
 }
 
-output "instance_selflink" {
-  value = google_compute_instance.server.selflink
+output "instance_self_link" {
+  value = google_compute_instance.server.self_link
 }

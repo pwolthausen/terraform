@@ -12,7 +12,6 @@ module "gcp-server" {
 
     project_id     = ""
     serverName     = "test-server"
-    region         = "us-central1"
     zone           = "us-central1-c"
     image          = ""
     machine_type   = "e2-medium"

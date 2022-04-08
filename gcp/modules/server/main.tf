@@ -1,3 +1,7 @@
+locals {
+  region = substr(var.zone, 0, length(var.zone)-2)
+}
+
 ##+#+#+#+#+#+#+#+#+#+##+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 #disks
 resource "google_compute_disk" "root" {
@@ -65,7 +69,7 @@ resource "google_compute_instance" "server" {
   network_interface {
     network    = var.network
     network_ip = google_compute_address.internal_static.address
-    subnetwork = var.subnet == null ? null : "projects/${local.network_project}/regions/${var.region}/subnetworks/${var.subnet}"
+    subnetwork = var.subnet == null ? null : "projects/${local.network_project}/regions/${local.region}/subnetworks/${var.subnet}"
     dynamic "access_config" {
       for_each = toset(google_compute_address.external_static)
       content {
@@ -87,10 +91,10 @@ resource "google_compute_instance" "server" {
 # resources will create inetrnal and external static IPs which will be attached to each VM.
 resource "google_compute_address" "internal_static" {
   project = var.project_id
-  region  = var.region
+  region  = local.region
 
   name         = "${var.serverName}-int-ip"
-  subnetwork   = "projects/${local.network_project}/regions/${var.region}/subnetworks/${var.subnet}"
+  subnetwork   = "projects/${local.network_project}/regions/${local.region}/subnetworks/${var.subnet}"
   address_type = "INTERNAL"
   address      = var.internal_ip
 }
@@ -98,7 +102,7 @@ resource "google_compute_address" "internal_static" {
 resource "google_compute_address" "external_static" {
   count   = var.external_ip != null ? 1 : 0
   project = var.project_id
-  region  = var.region
+  region  = local.region
 
   name         = "${var.serverName}-ext-ip"
   address_type = "EXTERNAL"
