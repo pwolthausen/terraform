@@ -6,13 +6,13 @@ variable "region" {
     type = string
 }
 
-variable "project_id" {
-    type = string
-}
-
-variable "name" {
-    type = string
-}
+# variable "project_id" {
+#     type = string
+# }
+#
+# variable "name" {
+#     type = string
+# }
 
 variable "sql_auth_networks" {
   type    = map(any)

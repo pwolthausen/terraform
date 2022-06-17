@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-terraform {
-  backend "gcs" {
-    bucket = "pw-sada-internal-tfstate"
-    prefix = "sandbox/netork"
-  }
+locals {
+  parent = var.parent_folder != "" ? "folders/${var.parent_folder}" : "organizations/${var.org_id}"
 }
+
+# data "google_active_folder" "devops" {
+#   display_name = "${var.folder_prefix}-devops"
+#   parent       = local.parent
+# }
