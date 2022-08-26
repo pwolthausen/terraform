@@ -1,0 +1,18 @@
+
+#cloud-config
+yum_repos:
+  docker-main:
+    name: Docker CE stable
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+packages:
+  - cloud-utils-growpart
+  - docker-ce
+  - docker-ce-cli
+  - vim
+runcmd:
+  - systemctl start docker
+  - systemctl enable docker
+package_upgrade: true

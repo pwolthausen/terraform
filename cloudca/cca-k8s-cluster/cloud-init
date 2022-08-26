@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euxo pipefail
+
+echo "Due to intermittent failures in installing packes, rebuild lists first"
+sudo yum clean all
+sudo yum update -y || true
+sudo yum makecache
+
+echo "Installing updates and pre-requisites...."
+sudo yum upgrade -y
+sudo yum install -y epel-release
+sudo yum install -y \
+    wget unzip bind-utils \
+    ntp ca-certificates vim jq python3 python3-pip
+
+echo "Installing docker"
+sudo yum install -y yum-utils
+sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum install -y docker-ce-19.03.9 docker-ce-cli-19.03.9 containerd.io
+
+if ! systemctl is-enabled --quiet chronyd; then
+  sudo systemctl enable chronyd
+fi
+
+if [ ! -e /usr/bin/pip ]; then
+  sudo ln -s pip3 /usr/bin/pip
+fi
+
+echo "Creating users and groups...."
+sudo useradd -m -s /bin/bash automation
+sudo mkdir /home/automation/.ssh && sudo chown automation /home/automation/.ssh
+sudo echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCtgcVHals9Twun8K75QxYOWehdKz1L048BPTceVQwjLEUEuSrprpMdz/4idIXs9SVgXc3bZRC0v1xFNEt+A+dMRI+MvY0tbYw92oTjY5iA0ZD9b5ldAUFPkMDoKU9G73VPBfEl1OzpkVdIl3hlH65R5FhTOy2f9CGonA3o+zfpdmKC69FyMaCorcTubqz+ZbRhMJveXelKcvi2Jnw2FVJoFIWjE6NOhHpQ/T9VpGU6C5/l7gfSB4BujEEgI6lyMixeMYjJClq7ORJjEFwXp0Buk95DJnB0opgToUbh7WVomjr5cV51acdgoPGilVsubz61arp8zTKCBBmKUWDwMGU/" > /home/automation/.ssh/authorized_keys
+sudo chown automation /home/automation/.ssh/authorized_keys
+sudo usermod -aG wheel automation
+echo "automation ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/automation
+
+# # Give docker access to cca-user
+# sudo usermod -aG docker automation
+
+# if [ ! systemctl is-enabled --quiet docker ]; then
+#   sudo systemctl enable docker
+# fi
+# sudo systemctl start docker
+
+# Enable masq
+
+# Set kernel parameters for RKE
+echo 'net.bridge.bridge-nf-call-iptables = 1' | sudo tee -a /etc/sysctl.conf > /dev/null

@@ -1,0 +1,43 @@
+{
+  "variables": {
+    "api_url": "{{ env `CLOUDSTACK_API_URL` }}",
+    "api_key": "{{ env `CLOUDSTACK_API_KEY` }}",
+    "secret_key": "{{ env `CLOUDSTACK_SECRET_KEY` }}",
+    "project": "{{ env `CLOUDSTACK_PROJECT_ID` }}"
+  },
+  "builders": [
+    {
+      "type": "cloudstack",
+      "api_url": "{{user `api_url`}}",
+      "api_key": "{{user `api_key`}}",
+      "secret_key": "{{user `secret_key`}}",
+      "project": "{{user `project`}}",
+
+      "disk_offering": "Performance, No QoS",
+      "hypervisor": "KVM",
+      "network": "images-net",
+      "service_offering": "1vCPU.512MB",
+      "source_template": "Ubuntu 18.04",
+      "zone": "ON-1",
+
+      "ssh_username": "cca-user",
+
+      "template_name": "cca-k8s-template-{{user `tag`}}",
+      "template_display_text": "Ubuntu 18.04 Template for K8S",
+      "template_public": false,
+      "template_scalable": true,
+      "template_os": "Ubuntu 18.04 (64-bit)"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": "/usr/bin/cloud-init status --wait"
+    },
+    {
+      "type": "shell",
+      "script": "setup.sh"
+    }
+  ]
+}
+

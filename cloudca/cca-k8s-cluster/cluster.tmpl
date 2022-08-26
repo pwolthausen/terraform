@@ -1,0 +1,62 @@
+nodes:
+%{ for index, name in leader_names ~}
+- address: ${name}.${cluster_fqdn}
+  internal_address: ${leader_ips[index]}
+  port: 22
+  user: automation
+  role:
+  - controlplane
+  - etcd
+  labels:
+    role: leader
+%{ endfor ~}
+%{ for index, name in worker_names ~}
+- address: ${name}.${cluster_fqdn}
+  port: 22
+  internal_address: ${worker_ips[index]}
+  role:
+  - worker
+  user: automation
+  labels:
+    node: ingress
+    role: worker
+%{ endfor ~}
+%{ for index, name in worker_st_names ~}
+- address: ${name}.${cluster_fqdn}
+  port: 22
+  internal_address: ${worker_st_ips[index]}
+  role:
+  - worker
+  user: automation
+  labels:
+    node: data
+    role: worker
+  taints:
+    - key: "data"
+      operator: "Equal"
+      value: "storage"
+      effect: "NoSchedule"
+%{ endfor ~}
+ssh_key_path: ~/.ssh/cloudops/cloudops
+cluster_name: ${cluster_name}
+kubernetes_version: ${k8s_version}
+services:
+  etcd:
+    backup_config:
+      interval_hours: 12
+      retention: 6
+      s3backupconfig:
+        access_key: ${s3_access_key}
+        secret_key: ${s3_secret_key}
+        bucket_name: ${cluster_name}
+        region: "cloud.ca"
+        endpoint: "https://objects.cloud.ca"
+authentication:
+  sans:
+    - "${cluster_name}.${cluster_fqdn}"
+ingress:
+  provider: ${k8s_ingress}
+  node_selector:
+    node: ingress
+network:
+  plugin: ${k8s_cni}
