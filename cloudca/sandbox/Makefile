@@ -3,13 +3,13 @@ get-modules:
 	terraform get
 
 plan: get-modules
-	terraform plan -var 'api_key=${CLOUDCA_API_KEY}' -var-file variables.tfvars -out sandbox.tfplan
+	terraform plan -var-file variables.tfvars -out sandbox.tfplan
 
 apply: get-modules
 	terraform apply sandbox.tfplan
 
 destroy: get-modules
-	terraform plan -destroy -var 'api_key=${CLOUDCA_API_KEY}' -var-file variables.tfvars -out sandbox.tfplan
+	terraform plan -destroy -var-file variables.tfvars -out sandbox.tfplan
 
 refresh:
-	terraform refresh -var 'api_key=${CLOUDCA_API_KEY}' -var-file variables.tfvars
+	terraform refresh -var-file variables.tfvars

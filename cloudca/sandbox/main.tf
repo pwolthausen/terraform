@@ -68,24 +68,25 @@ resource "cloudca_public_ip" "nat_ip" {
   vpc_id         = cloudca_vpc.vpc.id
 }
 
-resource "cloudca_port_forwarding_rule" "replicated_test_allow_ssh" {
+resource "cloudca_port_forwarding_rule" "replicated_test_allow_ssh_leader" {
   environment_id     = var.environment_id
   public_ip_id       = cloudca_public_ip.nat_ip.id
   public_port_start  = 22
-  private_ip_id      = cloudca_instance.replicated_test.private_ip_id
+  private_ip_id      = cloudca_instance.bastion.private_ip_id
   private_port_start = 22
   protocol           = "TCP"
 }
 
-resource "cloudca_instance" "replicated_test" {
+resource "cloudca_instance" "bastion" {
   environment_id         = var.environment_id
-  name                   = "replicated-test"
+  name                   = "bastion"
   network_id             = cloudca_network.network.id
-  template               = "Ubuntu 20.04"
+  template               = "97a20c63-6aad-4565-a7cc-e95bb16f5485"
   compute_offering       = "Standard"
-  cpu_count              = 4
-  memory_in_mb           = 8192
+  cpu_count              = 2
+  memory_in_mb           = 4096
   ssh_key_name           = "sandbox-default"
   root_volume_size_in_gb = 100
-  private_ip             = cidrhost(cloudca_network.network.cidr, 100)
+  private_ip             = cidrhost(cloudca_network.network.cidr, 10)
+  # user_data              = templatefile("cloud-init.yaml", { public_key = var.public_key, passwd = base64sha256(var.password) })
 }

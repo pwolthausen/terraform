@@ -1,13 +1,19 @@
 provider "cloudca" {
-  api_key = var.api_key
+  api_key = var.cloudca_api_key
   api_url = "https://hypertec.cloud/api/v1"
 }
+
+provider "rke" {}
 
 terraform {
   required_providers {
     cloudca = {
       source  = "cloud-ca/cloudca"
       version = "1.6.0"
+    }
+    rke = {
+      source  = "rancher/rke"
+      version = "1.3.2"
     }
   }
   backend "swift" {
