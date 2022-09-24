@@ -4,5 +4,4 @@ credentials.json
 *.tfplan
 *.tfstate
 *.tfvars
-*.tfplan
 *.terraform.*
