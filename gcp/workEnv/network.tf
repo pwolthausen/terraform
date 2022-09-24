@@ -1,118 +1,169 @@
 ##Create network and subnets
-resource "google_compute_network" "newVPC" {
-  name                    = var.networkName
-  auto_create_subnetworks = false
+module "core_network" {
+  source  = "terraform-google-modules/network/google"
+  version = "5.2.0"
+
+  project_id                             = var.project_id
+  network_name                           = "vpc-pw-core"
+  shared_vpc_host                        = "false"
+  delete_default_internet_gateway_routes = "false"
+
+  firewall_rules = [
+    {
+      name      = "fw-pw-core-allow-internal"
+      direction = "INGRESS"
+      priority  = 100
+      ranges    = ["192.168.0.0/19", "10.0.0.0/20"]
+      allow = [
+        {
+          protocol = "all"
+          ports    = []
+        }
+      ]
+    },
+    {
+      name        = "fw-pw-core-allow-ssh"
+      direction   = "INGRESS"
+      priority    = 100
+      ranges      = ["${var.my_ip}/32"]
+      target_tags = ["bastion"]
+      allow = [
+        {
+          protocol = "TCP"
+          ports    = ["22"]
+        }
+      ]
+    }
+  ]
+
+  subnets = [
+    {
+      subnet_name           = "dublin"
+      subnet_ip             = "192.168.0.0/23"
+      subnet_region         = "northamerica-northeast1"
+      subnet_private_access = true
+    },
+    {
+      subnet_name           = "cork"
+      subnet_ip             = "192.168.2.0/24"
+      subnet_region         = "us-east1"
+      subnet_private_access = true
+    },
+    {
+      subnet_name           = "galway"
+      subnet_ip             = "192.168.3.0/24"
+      subnet_region         = "us-central1"
+      subnet_private_access = true
+    },
+    {
+      subnet_name           = "limrick"
+      subnet_ip             = "192.168.4.0/24"
+      subnet_region         = "us-west1"
+      subnet_private_access = true
+    },
+    {
+      subnet_name           = "sligo"
+      subnet_ip             = "192.168.5.0/24"
+      subnet_region         = "europe-west2"
+      subnet_private_access = true
+    },
+  ]
+
+  secondary_ranges = {
+    dublin = [
+      {
+        range_name    = "pod-cidr"
+        ip_cidr_range = "10.0.0.0/21"
+      },
+      {
+        range_name    = "service-cidr-0"
+        ip_cidr_range = "10.0.8.0/23"
+      },
+      {
+        range_name    = "service-cidr-1"
+        ip_cidr_range = "10.0.10.0/23"
+      },
+      {
+        range_name    = "service-cidr-2"
+        ip_cidr_range = "10.0.12.0/23"
+      },
+      {
+        range_name    = "service-cidr-3"
+        ip_cidr_range = "10.0.14.0/23"
+      },
+    ],
+  }
 }
 
-resource "google_compute_subnetwork" "dublin" {
-  name                     = "dublin"
-  region                   = "northamerica-northeast1"
-  network                  = google_compute_network.newVPC.self_link
-  ip_cidr_range            = cidrsubnet(var.ipCIDR, var.newbits, 1)
-  private_ip_google_access = true
+##Create network and subnets
+module "alternate_network" {
+  source  = "terraform-google-modules/network/google"
+  version = "5.2.0"
 
-  secondary_ip_range = [{
-    range_name    = "pod-cidr"
-    ip_cidr_range = cidrsubnet(var.podCIDR, var.podnewbits, 1)
-  },
-  {
-    range_name    = "service-cidr"
-    ip_cidr_range = cidrsubnet(var.serviceCIDR, var.servicenewbits, 1)
-  },
-  {
-    range_name    = "service-cidr2"
-    ip_cidr_range = cidrsubnet(var.serviceCIDR, var.servicenewbits, 2)
-  },
-  {
-    range_name    = "service-cidr3"
-    ip_cidr_range = cidrsubnet(var.serviceCIDR, var.servicenewbits, 3)
-  }]
-}
+  project_id                             = var.project_id
+  network_name                           = "vpc-pw-alternate"
+  shared_vpc_host                        = "false"
+  delete_default_internet_gateway_routes = "true"
 
-resource "google_compute_subnetwork" "belfast" {
-  name                     = "belfast"
-  region                   = "northamerica-northeast1"
-  network                  = google_compute_network.newVPC.self_link
-  ip_cidr_range            = cidrsubnet(var.ipCIDR, var.newbits, 2)
-  private_ip_google_access = true
+  firewall_rules = [
+    {
+      name      = "fw-pw-alt-allow-internal"
+      direction = "INGRESS"
+      priority  = 100
+      ranges    = ["192.168.32.0/19", "10.0.16.0/20"]
+      allow = [
+        {
+          protocol = "all"
+          ports    = []
+        }
+      ]
+    }
+  ]
 
-  secondary_ip_range = [{
-    range_name    = "pod-cidr"
-    ip_cidr_range = cidrsubnet(var.podCIDR, var.podnewbits, 2)
-  },
-  {
-    range_name    = "service-cidr1"
-    ip_cidr_range = cidrsubnet(var.serviceCIDR, var.servicenewbits, 5)
-  },
-  {
-    range_name    = "service-cidr2"
-    ip_cidr_range = cidrsubnet(var.serviceCIDR, var.servicenewbits, 6)
-  },
-  {
-    range_name    = "service-cidr3"
-    ip_cidr_range = cidrsubnet(var.serviceCIDR, var.servicenewbits, 7)
-  }]
-}
+  subnets = [
+    {
+      subnet_name           = "belfast"
+      subnet_ip             = "192.168.32.0/23"
+      subnet_region         = "northamerica-northeast1"
+      subnet_private_access = true
+    },
+  ]
 
-resource "google_compute_subnetwork" "cork" {
-  name                     = "cork"
-  region                   = "us-east1"
-  network                  = google_compute_network.newVPC.self_link
-  ip_cidr_range            = cidrsubnet(var.ipCIDR, var.newbits, 3)
-  private_ip_google_access = true
-}
-
-resource "google_compute_subnetwork" "galwaySubnet" {
-  name                     = "galway"
-  region                   = "us-central1"
-  network                  = google_compute_network.newVPC.self_link
-  ip_cidr_range            = cidrsubnet(var.ipCIDR, var.newbits, 4)
-  private_ip_google_access = true
-}
-
-resource "google_compute_subnetwork" "sligoSubnet" {
-  name                     = "sligo"
-  region                   = "us-west1"
-  network                  = google_compute_network.newVPC.self_link
-  ip_cidr_range            = cidrsubnet(var.ipCIDR, var.newbits, 5)
-  private_ip_google_access = true
+  secondary_ranges = {
+    belfast = [
+      {
+        range_name    = "pod-cidr"
+        ip_cidr_range = "10.0.16.0/21"
+      },
+      {
+        range_name    = "service-cidr-0"
+        ip_cidr_range = "10.0.24.0/23"
+      },
+      {
+        range_name    = "service-cidr-1"
+        ip_cidr_range = "10.0.26.0/23"
+      },
+      {
+        range_name    = "service-cidr-2"
+        ip_cidr_range = "10.0.28.0/23"
+      },
+      {
+        range_name    = "service-cidr-3"
+        ip_cidr_range = "10.0.30.0/23"
+      },
+    ]
+  }
 }
 
 ##Create firewall rules
 
-resource "google_compute_firewall" "allow-web-traffic" {
-  name    = "allow-web-traffic"
-  network = google_compute_network.newVPC.self_link
-
-  allow {
-    protocol = "tcp"
-    ports    = ["80", "443"]
-  }
-
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["web-server"]
-}
-
-resource "google_compute_firewall" "bastion-ssh" {
-  name    = "bastion-ssh"
-  network = google_compute_network.newVPC.self_link
-
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["bastion"]
-}
-
-resource "google_compute_firewall" "allow-internal" {
-  name    = "allow-internal"
-  network = google_compute_network.newVPC.self_link
-
-  allow {
-    protocol = "all"
-  }
-
-  source_ranges = ["192.168.0.0/16", "10.0.0.0/8"]
-}
+# resource "google_compute_firewall" "allow-internal" {
+#   name    = "allow-internal"
+#   network = google_compute_network.new_vpc.self_link
+#
+#   allow {
+#     protocol = "all"
+#   }
+#
+#   source_ranges = ["192.168.0.0/16", "10.0.0.0/8"]
+# }

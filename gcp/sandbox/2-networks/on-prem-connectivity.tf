@@ -29,7 +29,7 @@ module "vpn_ha" {
   name       = "vpn-"
 
   peer_external_gateway = {
-    redundancy_type = "SINGLE_IP_INTERNALLY_REDUNDANT or TWO_IPS_REDUNDANCY"
+    redundancy_type = length(var.peer_ips) = 1 ? "SINGLE_IP_INTERNALLY_REDUNDANT" : "TWO_IPS_REDUNDANCY"
     interfaces = [{
       id         = 0
       ip_address = var.peer_ips[0]

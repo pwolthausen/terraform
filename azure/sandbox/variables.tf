@@ -14,6 +14,20 @@ variable "os_admin" {
   description = "OS admin user"
 }
 
-output "bastion_endpoint" {
-  value = azurerm_public_ip.bastion.ip_address
+variable "vpn_peer_address" {
+  type    = string
+  default = ""
 }
+
+variable "vpn_peer_bgp_asn" {
+  type    = string
+  default = ""
+}
+
+variable "vpn_peer_bgp_ip" {
+  type    = string
+  default = ""
+}
+# output "bastion_endpoint" {
+#   value = azurerm_public_ip.bastion.ip_address
+# }
