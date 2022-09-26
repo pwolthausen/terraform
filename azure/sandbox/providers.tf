@@ -23,11 +23,15 @@ terraform {
       version = "1.6.0"
     }
   }
-  backend "swift" {
-    container         = "pw-azure-sandbox-state"
-    archive_container = "pw-azure-sandbox-state_backup"
-    auth_url          = "https://auth.cloud.ca"
-    region_name       = "multi-region"
-    tenant_name       = "cloudops-tf-state-852414"
+  # backend "swift" {
+  #   container         = "pw-azure-sandbox-state"
+  #   archive_container = "pw-azure-sandbox-state_backup"
+  #   auth_url          = "https://auth.cloud.ca"
+  #   region_name       = "multi-region"
+  #   tenant_name       = "cloudops-tf-state-852414"
+  # }
+  backend "gcs" {
+    bucket = "bkt-advk8s-tfstate"
+    prefix = "terraform/pwolthausen/vpn-test/azure-state"
   }
 }

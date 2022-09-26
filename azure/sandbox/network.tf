@@ -15,6 +15,13 @@ resource "azurerm_virtual_network" "hub" {
   }
 }
 
+resource "azurerm_subnet" "hub_infra_test" {
+  name                 = "sb-pw-hub-infra"
+  resource_group_name  = azurerm_resource_group.hub.name
+  virtual_network_name = azurerm_virtual_network.hub.name
+  address_prefixes     = ["192.168.100.32/27"]
+}
+
 ###########################
 ##### Bastion
 ###########################
@@ -97,6 +104,9 @@ resource "azurerm_virtual_network_peering" "core_hub_peer" {
   resource_group_name       = azurerm_resource_group.core.name
   virtual_network_name      = azurerm_virtual_network.core.name
   remote_virtual_network_id = azurerm_virtual_network.hub.id
+  allow_forwarded_traffic   = true
+  allow_gateway_transit     = true
+  use_remote_gateways       = true
 }
 
 resource "azurerm_virtual_network_peering" "hub_core_peer" {
@@ -104,4 +114,6 @@ resource "azurerm_virtual_network_peering" "hub_core_peer" {
   resource_group_name       = azurerm_resource_group.hub.name
   virtual_network_name      = azurerm_virtual_network.hub.name
   remote_virtual_network_id = azurerm_virtual_network.core.id
+  allow_forwarded_traffic   = true
+  allow_gateway_transit     = true
 }

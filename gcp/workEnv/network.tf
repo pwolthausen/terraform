@@ -154,16 +154,3 @@ module "alternate_network" {
     ]
   }
 }
-
-##Create firewall rules
-
-# resource "google_compute_firewall" "allow-internal" {
-#   name    = "allow-internal"
-#   network = google_compute_network.new_vpc.self_link
-#
-#   allow {
-#     protocol = "all"
-#   }
-#
-#   source_ranges = ["192.168.0.0/16", "10.0.0.0/8"]
-# }

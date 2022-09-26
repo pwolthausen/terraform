@@ -1,4 +1,4 @@
-# resource "azurerm_network_interface" "core" {
+# resource "azurerm_network_interface" "webapp" {
 #   name                = "pw-web-nic"
 #   location            = azurerm_resource_group.core.location
 #   resource_group_name = azurerm_resource_group.core.name
