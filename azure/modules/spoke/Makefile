@@ -3,13 +3,13 @@ get-modules:
 	terraform get
 
 plan: get-modules
-	terraform plan -out sandbox.tfplan
+	terraform plan -out plan.tfplan
 
 apply: get-modules
-	terraform apply sandbox.tfplan
+	terraform apply plan.tfplan
 
 destroy: get-modules
-	terraform plan -destroy -out sandbox.tfplan
+	terraform plan -destroy -out plan.tfplan
 
 refresh:
 	terraform refresh

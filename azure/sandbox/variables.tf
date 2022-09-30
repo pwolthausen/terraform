@@ -8,26 +8,42 @@ variable "azure_sub" {
   description = "Subscription ID used to deploy resources"
 }
 
+variable "location" {
+  type        = string
+  default     = "Canada Central"
+  description = "Azure region"
+}
+
+variable "prefix" {
+  type        = string
+  default     = "pw"
+  description = "Prefix used in naming for most resources"
+}
+
 variable "os_admin" {
   type        = string
   default     = "pwolthausen"
   description = "OS admin user"
 }
 
-variable "vpn_peer_address" {
+variable "shared_key" {
   type    = string
-  default = ""
+  default = "P@ssw0rd"
 }
 
-variable "vpn_peer_bgp_asn" {
-  type    = string
-  default = ""
+variable "global_tags" {
+  type = map(any)
 }
 
-variable "vpn_peer_bgp_ip" {
-  type    = string
-  default = ""
+variable "bgp_peer_ip" {
+  type        = list(string)
+  description = "list of IPs used for peer VPN gateway"
 }
-# output "bastion_endpoint" {
-#   value = azurerm_public_ip.bastion.ip_address
-# }
+
+variable "application_rule_collection" {
+  default = {}
+}
+
+variable "network_rule_collection" {
+  default = {}
+}

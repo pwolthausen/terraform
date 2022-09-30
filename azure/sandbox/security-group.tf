@@ -1,7 +1,7 @@
-# resource "azurerm_network_security_group" "core" {
-#   name                = "sg-pw-cac-core"
-#   location            = azurerm_resource_group.core.location
-#   resource_group_name = azurerm_resource_group.core.name
+# resource "azurerm_network_security_group" "webapp" {
+#   name                = "sg-pw-cac-webapp"
+#   location            = azurerm_resource_group.webapp.location
+#   resource_group_name = azurerm_resource_group.webapp.name
 #
 #   tags = {
 #     owner       = "pwolthausen"
@@ -19,8 +19,8 @@
 #   source_port_range           = "*"
 #   destination_address_prefix  = "*"
 #   destination_port_range      = "*"
-#   resource_group_name         = azurerm_resource_group.core.name
-#   network_security_group_name = azurerm_network_security_group.core.name
+#   resource_group_name         = azurerm_resource_group.webapp.name
+#   network_security_group_name = azurerm_network_security_group.webapp.name
 # }
 #
 # resource "azurerm_network_security_rule" "allow_all_egress" {
@@ -33,8 +33,8 @@
 #   source_port_range           = "*"
 #   destination_address_prefix  = "*"
 #   destination_port_range      = "*"
-#   resource_group_name         = azurerm_resource_group.core.name
-#   network_security_group_name = azurerm_network_security_group.core.name
+#   resource_group_name         = azurerm_resource_group.webapp.name
+#   network_security_group_name = azurerm_network_security_group.webapp.name
 # }
 #
 # resource "azurerm_network_security_rule" "allow_ssh" {
@@ -47,8 +47,8 @@
 #   destination_port_range      = "22"
 #   source_address_prefix       = "173.178.40.19/32"
 #   source_port_range           = "22"
-#   resource_group_name         = azurerm_resource_group.core.name
-#   network_security_group_name = azurerm_network_security_group.core.name
+#   resource_group_name         = azurerm_resource_group.webapp.name
+#   network_security_group_name = azurerm_network_security_group.webapp.name
 # }
 #
 # resource "azurerm_network_security_rule" "allow_bastion" {
@@ -57,10 +57,10 @@
 #   direction                    = "Inbound"
 #   access                       = "Allow"
 #   protocol                     = "*"
-#   destination_address_prefixes = azurerm_subnet.core.address_prefixes
+#   destination_address_prefixes = azurerm_subnet.webapp.address_prefixes
 #   destination_port_range       = "*"
 #   source_address_prefixes      = azurerm_subnet.bastion.address_prefixes
 #   source_port_range            = "*"
-#   resource_group_name          = azurerm_resource_group.core.name
-#   network_security_group_name  = azurerm_network_security_group.core.name
+#   resource_group_name          = azurerm_resource_group.webapp.name
+#   network_security_group_name  = azurerm_network_security_group.webapp.name
 # }

@@ -9,6 +9,7 @@ provider "azurerm" {
 }
 
 terraform {
+  experiments = [module_variable_optional_attrs]
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -32,6 +33,6 @@ terraform {
   # }
   backend "gcs" {
     bucket = "bkt-advk8s-tfstate"
-    prefix = "terraform/pwolthausen/vpn-test/azure-state"
+    prefix = "terraform/pwolthausen/vpn-test/az-state"
   }
 }
