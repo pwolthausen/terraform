@@ -106,5 +106,20 @@ variable "network_rule_collection" {
 }
 
 variable "nat_rule_collection" {
-  default = {}
+  description = "Each block defines a NAT rule to add to the firewall policy"
+  default     = {}
+  type = map(object({
+    priority = number
+    action   = string
+    rule = map(object({
+      protocols           = list(string)
+      source_addresses    = optional(list(string))
+      source_ip_groups    = optional(list(string))
+      destination_address = optional(list(string))
+      destination_ports   = optional(list(string))
+      translated_address  = optional(string)
+      translated_fqdn     = optional(string)
+      translated_port     = string
+    }))
+  }))
 }
