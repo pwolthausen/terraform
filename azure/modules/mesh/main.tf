@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "vwan" {
-  name     = "${var.prefix}-vwan-${var.region_code}"
+  name     = "rg-${var.bu}-${var.env}-${var.region_code}"
   location = var.location
   tags = merge(var.global_tags, {
     env    = "shared"
@@ -13,7 +13,7 @@ resource "azurerm_resource_group" "vwan" {
 ##########################
 
 resource "azurerm_virtual_wan" "vwan" {
-  name                           = "vwan-${var.prefix}-${var.region_code}"
+  name                           = "vwan-${var.bu}-${var.env}-${var.region_code}"
   resource_group_name            = azurerm_resource_group.vwan.name
   location                       = azurerm_resource_group.vwan.location
   allow_branch_to_branch_traffic = false
@@ -26,11 +26,11 @@ resource "azurerm_virtual_wan" "vwan" {
 }
 
 resource "azurerm_virtual_hub" "vwan" {
-  name                = "hub-${var.prefix}-${var.region_code}"
+  name                = "hub-${var.bu}-${var.env}-${var.region_code}"
   resource_group_name = azurerm_resource_group.vwan.name
   location            = azurerm_resource_group.vwan.location
   virtual_wan_id      = azurerm_virtual_wan.vwan.id
-  address_prefix      = cidrsubnet(var.address_space, 1, 0)
+  address_prefix      = var.address_space
 
   sku = "Standard"
   tags = merge(var.global_tags, {
@@ -40,21 +40,21 @@ resource "azurerm_virtual_hub" "vwan" {
   })
 }
 
-resource "azurerm_virtual_hub_route_table" "vwan" {
-  name           = "rtt-hub-${var.region_code}"
-  virtual_hub_id = azurerm_virtual_hub.vwan.id
-
-  route {
-    name              = "all_traffic"
-    destinations_type = "CIDR"
-    destinations      = ["0.0.0.0/0", "10.0.0.0/8", "192.168.0.0/16"]
-    next_hop_type     = "ResourceId"
-    next_hop          = azurerm_firewall.firewall.id
-  }
-}
+# resource "azurerm_virtual_hub_route_table" "vwan" {
+#   name           = "rt-${var.bu}-${var.env}-${var.region_code}"
+#   virtual_hub_id = azurerm_virtual_hub.vwan.id
+#
+#   route {
+#     name              = "all_traffic"
+#     destinations_type = "CIDR"
+#     destinations      = ["0.0.0.0/0", "10.0.0.0/8", "192.168.0.0/16"]
+#     next_hop_type     = "ResourceId"
+#     next_hop          = azurerm_firewall.firewall.id
+#   }
+# }
 
 resource "azurerm_firewall" "firewall" {
-  name                = "fw-${var.prefix}-${var.region_code}"
+  name                = "afw-${var.bu}-${var.env}-${var.region_code}"
   location            = azurerm_resource_group.vwan.location
   resource_group_name = azurerm_resource_group.vwan.name
 
@@ -72,35 +72,41 @@ resource "azurerm_firewall" "firewall" {
 ##########################
 
 resource "azurerm_vpn_gateway" "vwan" {
-  name                = "vpn-${var.prefix}-${var.region_code}"
+  name                = "vpng-${var.bu}-${var.env}-${var.region_code}"
   location            = azurerm_resource_group.vwan.location
   resource_group_name = azurerm_resource_group.vwan.name
   virtual_hub_id      = azurerm_virtual_hub.vwan.id
 
-  bgp_settings {
-    asn         = 65515
-    peer_weight = 0
-    instance_0_bgp_peering_address {
-      custom_ips = ["169.254.21.1"]
-    }
-    instance_1_bgp_peering_address {
-      custom_ips = ["169.254.21.5"]
+  dynamic "bgp_settings" {
+    for_each = var.bgp_settings
+    content {
+      asn         = 65515
+      peer_weight = 0
+      instance_0_bgp_peering_address {
+        custom_ips = [bgp_settings.value.link0]
+      }
+      instance_1_bgp_peering_address {
+        custom_ips = [bgp_settings.value.link1]
+      }
     }
   }
 }
 
 resource "azurerm_vpn_site" "vwan" {
-  name                = "site-${var.prefix}-${var.region_code}-${var.vpn_peer_name}"
+  for_each            = var.vpn_connections
+  name                = "vst-${var.bu}-${each.key}-${var.env}-${var.region_code}"
   location            = azurerm_resource_group.vwan.location
   resource_group_name = azurerm_resource_group.vwan.name
   virtual_wan_id      = azurerm_virtual_wan.vwan.id
+  address_cidrs       = each.value.address_cidrs
+
   dynamic "link" {
-    for_each = var.vpn_links
+    for_each = each.value.vpn_links
     content {
       name       = link.key
       ip_address = link.value.peer_ip
       dynamic "bgp" {
-        for_each = lookup(link.value, "bgp")
+        for_each = lookup(link.value, "bgp") == null ? {} : link.value.bgp
         content {
           asn             = bgp.value.asn
           peering_address = bgp.value.bgp_peer_ip
@@ -110,45 +116,40 @@ resource "azurerm_vpn_site" "vwan" {
   }
 }
 
-resource "azurerm_vpn_gateway_connection" "vwan" {
-  name               = "tn-${var.prefix}-${var.region_code}-${var.vpn_peer_name}"
-  vpn_gateway_id     = azurerm_vpn_gateway.vwan.id
-  remote_vpn_site_id = azurerm_vpn_site.vwan.id
+locals {
+  site_links = { for key, site in azurerm_vpn_site.vwan : key => { for link in site.link : link.name => link.id } }
+}
 
-  routing {
-    associated_route_table = azurerm_virtual_hub_route_table.vwan.id
-    propagated_route_table {
-      route_table_ids = [azurerm_virtual_hub_route_table.vwan.id]
+resource "azurerm_vpn_gateway_connection" "vwan" {
+  for_each           = var.vpn_connections
+  name               = "vcn-${var.bu}-${each.key}-${var.env}-${var.region_code}"
+  vpn_gateway_id     = azurerm_vpn_gateway.vwan.id
+  remote_vpn_site_id = azurerm_vpn_site.vwan[each.key].id
+
+  dynamic "vpn_link" {
+    for_each = each.value.vpn_links
+    content {
+      name             = vpn_link.key
+      vpn_site_link_id = lookup(local.site_links[each.key], vpn_link.key)
+      bgp_enabled      = vpn_link.value.bgp == null ? false : true
+      shared_key       = sensitive(each.value.shared_key)
     }
   }
-
-  vpn_link {
-    name             = "link1"
-    vpn_site_link_id = azurerm_vpn_site.vwan.link[0].id
-    bgp_enabled      = true
-    shared_key       = var.shared_key
-  }
-
-  vpn_link {
-    name             = "link2"
-    vpn_site_link_id = azurerm_vpn_site.vwan.link[1].id
-    bgp_enabled      = true
-    shared_key       = var.shared_key
-  }
 }
+
 
 ##########################
 #### Firewall Policies
 ##########################
 
 resource "azurerm_firewall_policy" "vwan" {
-  name                = "fwp-hub-${var.prefix}-${var.region_code}"
+  name                = "afwp-${var.bu}-${var.env}-${var.region_code}"
   resource_group_name = azurerm_resource_group.vwan.name
   location            = azurerm_resource_group.vwan.location
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "vwan" {
-  name               = "pw-firewall-policies"
+  name               = "afwr-${var.bu}-${var.env}-${var.region_code}"
   firewall_policy_id = azurerm_firewall_policy.vwan.id
   priority           = 500
 

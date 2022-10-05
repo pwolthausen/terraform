@@ -14,7 +14,7 @@ variable "location" {
   description = "Azure region"
 }
 
-variable "prefix" {
+variable "bu" {
   type        = string
   default     = "pw"
   description = "Prefix used in naming for most resources"
