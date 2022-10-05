@@ -10,16 +10,13 @@ module "vwan" {
   location      = var.location
   region_code   = "cac-01"
   address_space = "192.168.100.0/24"
-  # vpn_peer_name = "gcp"
-  # address_cidrs = ["192.168.0.0/18"]
-  # shared_key    = var.shared_key
 
-  # bgp_settings = {
-  #   bgp_settings = {
-  #     link0 = "169.254.21.1"
-  #     link1 = "169.254.21.5"
-  #   }
-  # }
+  bgp_settings = {
+    bgp_settings = {
+      link0 = "169.254.21.1"
+      link1 = "169.254.21.5"
+    }
+  }
 
   vpn_connections = {
     gcp = {
@@ -28,46 +25,25 @@ module "vwan" {
       vpn_links = {
         link1 = {
           peer_ip = var.bgp_peer_ip[0]
-          # bgp = {
-          #   bgp = {
-          #     asn         = "64514"
-          #     bgp_peer_ip = "169.254.21.2"
-          #   }
-          # }
+          bgp = {
+            bgp = {
+              asn         = "64514"
+              bgp_peer_ip = "169.254.21.2"
+            }
+          }
         },
         link2 = {
           peer_ip = var.bgp_peer_ip[1]
-          # bgp = {
-          #   bgp = {
-          #     asn         = "64514"
-          #     bgp_peer_ip = "169.254.21.6"
-          #   }
-          # }
+          bgp = {
+            bgp = {
+              asn         = "64514"
+              bgp_peer_ip = "169.254.21.6"
+            }
+          }
         }
       }
     }
   }
-
-  # vpn_links = {
-  #   link1 = {
-  #     peer_ip = var.bgp_peer_ip[0]
-  #     # bgp = {
-  #     #   bgp = {
-  #     #     asn         = "64514"
-  #     #     bgp_peer_ip = "169.254.21.2"
-  #     #   }
-  #     # }
-  #   },
-  #   link2 = {
-  #     peer_ip = var.bgp_peer_ip[1]
-  #     # bgp = {
-  #     #   bgp = {
-  #     #     asn         = "64514"
-  #     #     bgp_peer_ip = "169.254.21.6"
-  #     #   }
-  #     # }
-  #   }
-  # }
 
   application_rule_collection = var.application_rule_collection
   network_rule_collection     = var.network_rule_collection

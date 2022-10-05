@@ -88,7 +88,21 @@ variable "application_rule_collection" {
 }
 
 variable "network_rule_collection" {
-  default = {}
+  description = "Each block defines a network rule to add to the firewall policy"
+  default     = {}
+  type = map(object({
+    priority = number
+    action   = string
+    rule = map(object({
+      protocols             = list(string)
+      source_addresses      = optional(list(string))
+      source_ip_groups      = optional(list(string))
+      destination_addresses = optional(list(string))
+      destination_ip_groups = optional(list(string))
+      destination_fqdns     = optional(list(string))
+      destination_ports     = optional(list(string))
+    }))
+  }))
 }
 
 variable "nat_rule_collection" {

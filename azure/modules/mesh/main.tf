@@ -195,12 +195,12 @@ resource "azurerm_firewall_policy_rule_collection_group" "vwan" {
         content {
           name                  = rule.key
           protocols             = rule.value.protocols
-          source_addresses      = lookup(rule.value, "source_addresses", [])
-          source_ip_groups      = lookup(rule.value, "source_ip_groups", [])
-          destination_addresses = lookup(rule.value, "destination_addresses", [])
-          destination_ip_groups = lookup(rule.value, "destination_ip_groups", [])
-          destination_fqdns     = lookup(rule.value, "destination_fqdns", [])
-          destination_ports     = lookup(rule.value, "destination_ports", [])
+          source_addresses      = lookup(rule.value, "source_addresses")
+          source_ip_groups      = lookup(rule.value, "source_ip_groups")
+          destination_addresses = lookup(rule.value, "destination_addresses")
+          destination_ip_groups = lookup(rule.value, "destination_ip_groups")
+          destination_fqdns     = lookup(rule.value, "destination_fqdns")
+          destination_ports     = lookup(rule.value, "destination_ports")
         }
       }
     }
