@@ -1,6 +1,5 @@
 # Azure Hub Module
 
-![alt text](exfo_hub_hld.png "HLD")  
 <p align="center">
   <img src="exfo_hub_hld.png" />
 </p>
