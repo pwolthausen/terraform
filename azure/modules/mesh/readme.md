@@ -1,5 +1,6 @@
 # Azure Hub Module
 
+![alt text](exfo_hub_hld.png "HLD")
 Hub module to create the hub portion of a hub and spoke architecture.
 The module will create the following resources:
 
