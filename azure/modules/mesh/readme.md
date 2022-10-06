@@ -3,6 +3,7 @@
 Hub module to create the hub portion of a hub and spoke architecture.
 The module will create the following resources:
 
+- resource group
 - vWAN
 - Secured virtual hub (includes firewall)
 - Firewall policy

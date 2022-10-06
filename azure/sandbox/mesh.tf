@@ -74,22 +74,20 @@ output "firewall_ip" {
 # #### core network
 # ##################################################
 #
-# module "app1_network" {
-#   source = "../modules/vnet"
-#
-#   prefix      = "pw"
-#   location    = var.location
-#   region_code = "cac"
-#   env         = "test"
-#   app         = "test-app"
-#
-#   address_space       = ["192.168.102.0/24"]
-#   subnets             = { webapp = ["192.168.102.0/24"] }
-#   firewall_ip         = module.vwan.firewall_ip
-#   vhub_route_table_id = module.vwan.vhub_route_table_id
-#
-#   global_tags = var.global_tags
-# }
+module "app1_network" {
+  source = "../modules/vnet"
+
+  business_unit = "pw"
+  location      = var.location
+  region_code   = "cac"
+  env           = "test"
+  app           = "test-app"
+
+  address_space = ["192.168.102.0/24"]
+  subnets       = { webapp = ["192.168.102.0/24"] }
+
+  global_tags = var.global_tags
+}
 #
 # output "app1_subnets" {
 #   value = module.app1_network.subnet_id

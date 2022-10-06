@@ -1,5 +1,10 @@
+data "azurerm_virtual_hub" "hub" {
+  name                = "hub-${var.hub_bu}-${var.hub_env}-${var.region_code}"
+  resource_group_name = "rg-${var.hub_bu}-${var.hub_env}-${var.region_code}"
+}
+
 resource "azurerm_resource_group" "spoke" {
-  name     = "${var.prefix}-${var.env}-${var.region_code}-network"
+  name     = "rg-${var.business_unit}-${var.app}-${var.env}-${var.region_code}"
   location = var.location
   tags = merge(var.global_tags, {
     env  = var.env
@@ -8,7 +13,7 @@ resource "azurerm_resource_group" "spoke" {
 }
 
 resource "azurerm_virtual_network" "spoke" {
-  name                = "vpc-${var.prefix}-${var.region_code}"
+  name                = "vpc-${var.business_unit}-${var.app}-${var.env}-${var.region_code}"
   address_space       = var.address_space
   location            = azurerm_resource_group.spoke.location
   resource_group_name = azurerm_resource_group.spoke.name
@@ -19,28 +24,31 @@ resource "azurerm_virtual_network" "spoke" {
   })
 }
 
-resource "azurerm_subnet" "spoke" {
+resource "azurerm_subnet" "spokes" {
   for_each             = var.subnets
-  name                 = "sb-${var.prefix}-${var.region_code}-${var.app}-${each.key}"
+  name                 = "sb-${var.business_unit}-${var.app}-${var.region_code}-${each.key}"
   resource_group_name  = azurerm_resource_group.spoke.name
   virtual_network_name = azurerm_virtual_network.spoke.name
   address_prefixes     = each.value
 }
 
-data "azurerm_virtual_hub" "hub" {
-  name                = "hub-pw-${var.region_code}"
-  resource_group_name = "pw-vwan-${var.region_code}"
+resource "azurerm_subnet" "spoke" {
+  count                = var.subnets == {} ? 1 : 0
+  name                 = "sb-${var.business_unit}-${var.app}-${var.region_code}"
+  resource_group_name  = azurerm_resource_group.spoke.name
+  virtual_network_name = azurerm_virtual_network.spoke.name
+  address_prefixes     = var.address_space
 }
 
 resource "azurerm_virtual_hub_connection" "spoke" {
-  name                      = "hc-${var.prefix}-${var.region_code}"
+  name                      = "hc-${var.business_unit}-${var.app}-${var.region_code}"
   virtual_hub_id            = data.azurerm_virtual_hub.hub.id
   remote_virtual_network_id = azurerm_virtual_network.spoke.id
 
   routing {
-    associated_route_table_id = var.vhub_route_table_id
+    associated_route_table_id = data.azurerm_virtual_hub.hub.default_route_table_id
     propagated_route_table {
-      route_table_ids = [var.vhub_route_table_id]
+      route_table_ids = [data.azurerm_virtual_hub.hub.default_route_table_id]
     }
   }
 
