@@ -1,7 +1,7 @@
-variable "cloudca_api_key" {
-  type        = string
-  description = "API key used to access cloud.ca storage bucket"
-}
+# variable "cloudca_api_key" {
+#   type        = string
+#   description = "API key used to access cloud.ca storage bucket"
+# }
 
 variable "azure_sub" {
   type        = string
@@ -33,11 +33,13 @@ variable "shared_key" {
 
 variable "global_tags" {
   type = map(any)
+  default = {}
 }
 
 variable "bgp_peer_ip" {
   type        = list(string)
   description = "list of IPs used for peer VPN gateway"
+  default = ["1.1.1.1", "2.2.2.2"]
 }
 
 variable "application_rule_collection" {
