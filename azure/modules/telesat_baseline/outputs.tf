@@ -7,5 +7,9 @@ output "network_name" {
 }
 
 output "subnet_id" {
-  value = var.subnets == {} ? { for x in azurerm_subnet.spoke : x.name => x.id } : { for x in azurerm_subnet.spokes : x.name => x.id }
+  value = { for x in azurerm_subnet.spokes : x.name => x.id }
+}
+
+output "test" {
+  value = azurerm_subnet.spokes
 }

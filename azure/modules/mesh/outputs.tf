@@ -17,7 +17,3 @@ output "firewall_ip" {
 # output "vhub_route_table_id" {
 #   value = azurerm_virtual_hub_route_table.vwan.id
 # }
-
-output "test" {
-  value = local.site_links
-}
