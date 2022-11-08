@@ -1,51 +1,46 @@
-##Set provider config
-provider "google" {
-  project = var.project_id
-}
-
-resource "google_compute_address" "bastion_ip" {
-  name   = "bastion-ip"
-  region = var.region
-}
-
-output "bastion_ip" {
-  value = google_compute_address.bastion_ip.address
-}
-
-resource "google_compute_instance" "bastionHost" {
-  name         = "bastion"
-  zone         = "${var.region}-a"
-  machine_type = "f1-micro"
-  tags         = ["bastion"]
-
-  allow_stopping_for_update = true
-
-  boot_disk {
-    initialize_params {
-      size  = "30"
-      type  = "pd-standard"
-      image = "debian-cloud/debian-11"
-    }
-  }
-
-  network_interface {
-    network    = module.core_network.network_self_link
-    subnetwork = module.core_network.subnets["${var.region}/dublin"].self_link
-
-    access_config {
-      nat_ip = google_compute_address.bastion_ip.address
-    }
-  }
-
-  metadata = {
-    block-project-ssh-keys = "true"
-    enable-oslogin         = "true"
-  }
-
-  service_account {
-    scopes = []
-  }
-}
+# resource "google_compute_address" "bastion_ip" {
+#   name   = "bastion-ip"
+#   region = var.region
+# }
+#
+# output "bastion_ip" {
+#   value = google_compute_address.bastion_ip.address
+# }
+#
+# resource "google_compute_instance" "bastionHost" {
+#   name         = "bastion"
+#   zone         = "${var.region}-a"
+#   machine_type = "f1-micro"
+#   tags         = ["bastion"]
+#
+#   allow_stopping_for_update = true
+#
+#   boot_disk {
+#     initialize_params {
+#       size  = "30"
+#       type  = "pd-standard"
+#       image = "debian-cloud/debian-11"
+#     }
+#   }
+#
+#   network_interface {
+#     network    = module.core_network.network_self_link
+#     subnetwork = module.core_network.subnets["${var.region}/dublin"].self_link
+#
+#     access_config {
+#       nat_ip = google_compute_address.bastion_ip.address
+#     }
+#   }
+#
+#   metadata = {
+#     block-project-ssh-keys = "true"
+#     enable-oslogin         = "true"
+#   }
+#
+#   service_account {
+#     scopes = []
+#   }
+# }
 
 # module "gke_sheehy" {
 #   source  = "terraform-google-modules/kubernetes-engine/google"

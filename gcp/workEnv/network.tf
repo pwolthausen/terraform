@@ -69,30 +69,30 @@ module "core_network" {
     # },
   ]
 
-  # secondary_ranges = {
-  #   dublin = [
-  #     {
-  #       range_name    = "pod-cidr"
-  #       ip_cidr_range = "10.0.0.0/21"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-0"
-  #       ip_cidr_range = "10.0.8.0/23"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-1"
-  #       ip_cidr_range = "10.0.10.0/23"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-2"
-  #       ip_cidr_range = "10.0.12.0/23"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-3"
-  #       ip_cidr_range = "10.0.14.0/23"
-  #     },
-  #   ],
-  # }
+  secondary_ranges = {
+    dublin = [
+      {
+        range_name    = "pod-cidr"
+        ip_cidr_range = "10.0.0.0/21"
+      },
+      {
+        range_name    = "service-cidr-0"
+        ip_cidr_range = "10.0.8.0/23"
+      },
+      {
+        range_name    = "service-cidr-1"
+        ip_cidr_range = "10.0.10.0/23"
+      },
+      {
+        range_name    = "service-cidr-2"
+        ip_cidr_range = "10.0.12.0/23"
+      },
+      {
+        range_name    = "service-cidr-3"
+        ip_cidr_range = "10.0.14.0/23"
+      },
+    ],
+  }
 }
 
 ##Create network and subnets

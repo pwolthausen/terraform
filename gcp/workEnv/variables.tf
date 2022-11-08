@@ -19,14 +19,10 @@ variable "vpn_secret" {
   default = ""
 }
 
-# variable "masterCIDR" {
-#   type    = string
-#   default = "10.46.0.0/24"
-# }
-# variable "masternewbits" {
-#   type    = number
-#   default = 4
-# }
+variable "master_ipv4_cidr_block" {
+  type    = string
+  default = "10.46.0.0/28"
+}
 
 # variable "net_hub_subnets" {
 #   description = "List of subnets to create in the network hub VPC. There should only be 1 subnet per required region for the interconnects or VPNs"
