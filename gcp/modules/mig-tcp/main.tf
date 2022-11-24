@@ -9,6 +9,7 @@ resource "google_compute_health_check" "servers1_autohealing" {
     response     = var.response
     port         = var.hcport
   }
+}
 
 resource "google_compute_instance_template" "server_template" {
   count        = var.disk2 ? 0 : 1
