@@ -206,21 +206,82 @@ resource "azurerm_bastion_host" "bastion" {
 #   })
 # }
 #
-# resource "azurerm_firewall" "firewall" {
-#   name                = "fw-${var.prefix}-${var.region_code}"
-#   location            = azurerm_resource_group.hub.location
-#   resource_group_name = azurerm_resource_group.hub.name
-#   sku_name            = "AZFW_VNet"
-#   sku_tier            = "Standard"
-#
-#   ip_configuration {
-#     name                 = "firewall"
-#     subnet_id            = azurerm_subnet.firewall.id
-#     public_ip_address_id = azurerm_public_ip.firewall.id
-#   }
-#   management_ip_configuration {
-#     name                 = "firewallManagement"
-#     subnet_id            = azurerm_subnet.firewall_management.id
-#     public_ip_address_id = azurerm_public_ip.firewall_management.id
-#   }
-# }
+
+resource "azurerm_firewall_policy" "hub_firewall" {
+  name                = "hub_policy"
+  resource_group_name = azurerm_resource_group.hub.name
+  location            = azurerm_resource_group.hub.location
+  sku                 = "Standard"
+}
+
+
+resource "azurerm_firewall" "hub_firewall" {
+  name                = "fw-${var.prefix}-${var.region_code}"
+  location            = azurerm_resource_group.hub.location
+  resource_group_name = azurerm_resource_group.hub.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+  private_ip_ranges   = "IANAPrivateRanges"
+  firewall_policy_id  = azurerm_firewall_policy.hub_firewall.id
+
+  ip_configuration {
+    name                 = "firewall"
+    subnet_id            = azurerm_subnet.firewall.id
+    public_ip_address_id = azurerm_public_ip.firewall.id
+  }
+  management_ip_configuration {
+    name                 = "firewallManagement"
+    subnet_id            = azurerm_subnet.firewall_management.id
+    public_ip_address_id = azurerm_public_ip.firewall_management.id
+  }
+}
+
+resource "azurerm_firewall_policy_rule_collection_group" "hub_firewall" {
+  name               = "hub_policy"
+  firewall_policy_id = azurerm_firewall_policy.hub_firewall.id
+  priority           = 10000
+  application_rule_collection {
+    name     = "app_rule_collection1"
+    priority = 500
+    action   = "Allow"
+    rule {
+      name = "allow_outbound_ms"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses  = ["10.0.0.0/8"]
+      destination_fqdns = ["*.microsoft.com"]
+    }
+  }
+
+  network_rule_collection {
+    name     = "allow_outbound_network"
+    priority = 65000
+    action   = "Allow"
+    rule {
+      name                  = "allow_outbound"
+      protocols             = ["TCP"]
+      source_addresses      = ["10.0.0.0/8"]
+      destination_addresses = ["*"]
+      destination_ports     = ["*"]
+    }
+  }
+
+  network_rule_collection {
+    name     = "restrict_inbound_traffic"
+    priority = 64999
+    action   = "Deny"
+    rule {
+      name                  = "deny_internal"
+      protocols             = ["TCP"]
+      source_addresses      = ["*"]
+      destination_addresses = ["10.0.0.0/8"]
+      destination_ports     = ["*"]
+    }
+  }
+}
