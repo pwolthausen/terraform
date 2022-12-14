@@ -44,4 +44,26 @@ resource "helm_release" "external_dns" {
   timeout         = 900
   cleanup_on_fail = true
   atomic          = true
+
+  depends_on = [
+    google_container_cluster.cluster,
+    google_container_node_pool.pool,
+  ]
+}
+
+resource "helm_release" "nginx" {
+  name             = "nginx-ingress"
+  namespace        = "core"
+  create_namespace = true
+  repository       = "https://helm.nginx.com/stable" #"https://prometheus-community.github.io/helm-charts"
+  chart            = "nginx-ingress"                 #"kube-prometheus-stack"
+
+  timeout         = 900
+  cleanup_on_fail = true
+  atomic          = true
+
+  depends_on = [
+    google_container_cluster.cluster,
+    google_container_node_pool.pool,
+  ]
 }
