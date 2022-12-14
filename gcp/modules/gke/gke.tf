@@ -101,21 +101,21 @@ resource "google_container_node_pool" "pool" {
   project        = var.project_id
   name           = each.key
   location       = var.region
-  node_locations = lookup(each.value, "node_locations", null)
+  node_locations = each.value.node_locations
   cluster        = google_container_cluster.cluster.name
 
-  node_count = lookup(each.value, "initial_node_count", 1)
+  node_count = each.value.initial_node_count
   autoscaling {
-    min_node_count = lookup(each.value, "min_count", 0)
-    max_node_count = lookup(each.value, "max_count", 5)
+    min_node_count = each.value.min_count
+    max_node_count = each.value.max_count
   }
 
   node_config {
-    machine_type    = lookup(each.value, "machine_type", "n2-standard-8")
-    disk_size_gb    = lookup(each.value, "disk_size_gb", 100)
-    disk_type       = lookup(each.value, "disk_type", "pd-standard")
-    local_ssd_count = lookup(each.value, "local_ssd_count", 0)
-    image_type      = lookup(each.value, "image_type", "COS_CONTAINERD")
+    machine_type    = each.value.machine_type
+    disk_size_gb    = each.value.disk_size_gb
+    disk_type       = each.value.disk_type
+    local_ssd_count = each.value.local_ssd_count
+    image_type      = each.value.image_type
 
     service_account = var.service_account_email
     tags            = concat(["gke-bell-network-common-nbd-gke-${var.env}-cluster"], var.network_tags)
@@ -141,7 +141,7 @@ resource "google_container_node_pool" "pool" {
 
   management {
     auto_repair  = true
-    auto_upgrade = lookup(each.value, "auto_upgrade", true)
+    auto_upgrade = each.value. "auto_upgrade", true)
   }
 }
 

@@ -75,7 +75,17 @@ variable "network_tags" {
 }
 
 variable "node_pools" {
-  type        = map(any)
+  type = map(object({
+    machine_type       = optional(string, "n2-standard-8")
+    node_locations     = optional(list(string))
+    initial_node_count = optional(number, 1)
+    disk_size_gb       = optional(number, 100)
+    disk_type          = optional(string, "pd-standard")
+    local_ssd_count    = optional(number, 0)
+    image_type         = optional(string, "COS_CONTAINERD")
+    min_count          = optional(number, 0)
+    max_count          = optional(number, 5)
+  }))
   description = "Node pools definitions"
   default     = {}
 }
