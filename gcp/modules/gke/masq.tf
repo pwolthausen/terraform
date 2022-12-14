@@ -35,7 +35,7 @@ EOF
 
 resource "helm_release" "external_dns" {
   name             = "external-dns"
-  namespace        = var.namespace
+  namespace        = "core"
   create_namespace = true
   repository       = "https://charts.bitnami.com/bitnami" #"https://prometheus-community.github.io/helm-charts"
   chart            = "external-dns"                       #"kube-prometheus-stack"
