@@ -89,6 +89,10 @@ resource "google_container_cluster" "cluster" {
     env = var.env
     # mesh_id = "proj-${data.google_project.project.number}"
   })
+
+  lifecycle {
+    ignore_changes = [node_pool, initial_node_count, resource_labels["asmv"], resource_labels["mesh_id"]]
+  }
 }
 
 # Separately Managed Node Pool
