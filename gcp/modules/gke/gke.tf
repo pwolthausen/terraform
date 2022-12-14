@@ -115,7 +115,7 @@ resource "google_container_node_pool" "pool" {
     disk_size_gb    = lookup(each.value, "disk_size_gb", 100)
     disk_type       = lookup(each.value, "disk_type", "pd-standard")
     local_ssd_count = lookup(each.value, "local_ssd_count", 0)
-    image_type      = lookup(each.value, "image_type", "COS")
+    image_type      = lookup(each.value, "image_type", "COS_CONTAINERD")
 
     service_account = var.service_account_email
     tags            = concat(["gke-bell-network-common-nbd-gke-${var.env}-cluster"], var.network_tags)
