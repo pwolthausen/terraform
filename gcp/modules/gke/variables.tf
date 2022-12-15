@@ -85,6 +85,7 @@ variable "node_pools" {
     image_type         = optional(string, "COS_CONTAINERD")
     min_count          = optional(number, 0)
     max_count          = optional(number, 5)
+    auto_upgrade       = optional(bool, true)
   }))
   description = "Node pools definitions"
   default     = {}
