@@ -141,19 +141,19 @@ resource "google_container_node_pool" "pool" {
 
   management {
     auto_repair  = true
-    auto_upgrade = each.value. "auto_upgrade", true)
+    auto_upgrade = each.value.auto_upgrade
   }
 }
 
-data "kubectl_file_documents" "manifests" {
-  for_each = toset(var.manifests)
-  content  = file("${path.root}/manifests/${each.key}")
-}
+# data "kubectl_file_documents" "manifests" {
+#   for_each = toset(var.manifests)
+#   content  = file("${path.root}/manifests/${each.key}")
+# }
 
-resource "kubectl_manifest" "manifests" {
-  for_each  = toset(var.manifests)
-  yaml_body = data.kubectl_file_documents.manifests[each.key].documents
-}
+# resource "kubectl_manifest" "manifests" {
+#   for_each  = toset(var.manifests)
+#   yaml_body = data.kubectl_file_documents.manifests[each.key].documents
+# }
 
 # module "asm" {
 #   source           = "terraform-google-modules/kubernetes-engine/google//modules/asm"
