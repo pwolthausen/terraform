@@ -15,9 +15,10 @@ inputs = {
   service_account_email   = "80612684543-compute@developer.gserviceaccount.com"
   master_authorized_networks = {
     prod-common-cicd = "10.61.120.0/25"
-    my-ip = "142.115.192.99"
   }
   node_pools = {
-    pool-1 = {}
+    pool-1 = {
+      machine_type = "e2-small"
+    }
   }
 }

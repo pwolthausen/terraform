@@ -95,62 +95,62 @@ module "core_network" {
   }
 }
 
-##Create network and subnets
-module "alternate_network" {
-  source  = "terraform-google-modules/network/google"
-  version = "5.2.0"
+# ##Create network and subnets
+# module "alternate_network" {
+#   source  = "terraform-google-modules/network/google"
+#   version = "5.2.0"
 
-  project_id                             = var.project_id
-  network_name                           = "vpc-pw-alternate"
-  shared_vpc_host                        = "false"
-  delete_default_internet_gateway_routes = "true"
+#   project_id                             = var.project_id
+#   network_name                           = "vpc-pw-alternate"
+#   shared_vpc_host                        = "false"
+#   delete_default_internet_gateway_routes = "true"
 
-  firewall_rules = [
-    {
-      name      = "fw-pw-alt-allow-internal"
-      direction = "INGRESS"
-      priority  = 100
-      ranges    = ["192.168.32.0/19", "10.0.16.0/20"]
-      allow = [
-        {
-          protocol = "all"
-          ports    = []
-        }
-      ]
-    }
-  ]
+#   firewall_rules = [
+#     {
+#       name      = "fw-pw-alt-allow-internal"
+#       direction = "INGRESS"
+#       priority  = 100
+#       ranges    = ["192.168.32.0/19", "10.0.16.0/20"]
+#       allow = [
+#         {
+#           protocol = "all"
+#           ports    = []
+#         }
+#       ]
+#     }
+#   ]
 
-  subnets = [
-    {
-      subnet_name           = "belfast"
-      subnet_ip             = "192.168.32.0/23"
-      subnet_region         = "northamerica-northeast1"
-      subnet_private_access = true
-    },
-  ]
+#   subnets = [
+#     {
+#       subnet_name           = "belfast"
+#       subnet_ip             = "192.168.32.0/23"
+#       subnet_region         = "northamerica-northeast1"
+#       subnet_private_access = true
+#     },
+#   ]
 
-  # secondary_ranges = {
-  #   belfast = [
-  #     {
-  #       range_name    = "pod-cidr"
-  #       ip_cidr_range = "10.0.16.0/21"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-0"
-  #       ip_cidr_range = "10.0.24.0/23"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-1"
-  #       ip_cidr_range = "10.0.26.0/23"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-2"
-  #       ip_cidr_range = "10.0.28.0/23"
-  #     },
-  #     {
-  #       range_name    = "service-cidr-3"
-  #       ip_cidr_range = "10.0.30.0/23"
-  #     },
-  #   ]
-  # }
-}
+#   # secondary_ranges = {
+#   #   belfast = [
+#   #     {
+#   #       range_name    = "pod-cidr"
+#   #       ip_cidr_range = "10.0.16.0/21"
+#   #     },
+#   #     {
+#   #       range_name    = "service-cidr-0"
+#   #       ip_cidr_range = "10.0.24.0/23"
+#   #     },
+#   #     {
+#   #       range_name    = "service-cidr-1"
+#   #       ip_cidr_range = "10.0.26.0/23"
+#   #     },
+#   #     {
+#   #       range_name    = "service-cidr-2"
+#   #       ip_cidr_range = "10.0.28.0/23"
+#   #     },
+#   #     {
+#   #       range_name    = "service-cidr-3"
+#   #       ip_cidr_range = "10.0.30.0/23"
+#   #     },
+#   #   ]
+#   # }
+# }

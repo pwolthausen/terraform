@@ -24,6 +24,12 @@ variable "master_ipv4_cidr_block" {
   default = "10.46.0.0/28"
 }
 
+variable "master_authorized_networks" {
+  type        = map(any)
+  description = "Defines IP addresses allowed to communicate with the GKE master endpoint"
+  default     = {}
+}
+
 # variable "net_hub_subnets" {
 #   description = "List of subnets to create in the network hub VPC. There should only be 1 subnet per required region for the interconnects or VPNs"
 #   type        = list(map({ subnet_name = string, subnet_ip = string, subnet_region = string, subnet_private_access = string, subnet_flow_logs = string, description = string }))

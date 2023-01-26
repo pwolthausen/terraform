@@ -3,7 +3,7 @@ locals {
 }
 
 inputs = {
-  env        = "${local.env}"
+  env        = "test"
   project_id = "cloudops-pwolthausen-sandbox"
   domain     = "netw"
   usecase    = "nane1"
