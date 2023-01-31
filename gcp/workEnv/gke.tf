@@ -37,20 +37,12 @@ resource "google_container_cluster" "primary" {
   remove_default_node_pool = true
 
   private_cluster_config {
-    enable_private_nodes    = true
-    enable_private_endpoint = true
-    master_ipv4_cidr_block  = var.master_ipv4_cidr_block
-    master_global_access_config {
-      enabled = true
-    }
+    enable_private_nodes   = true
+    master_ipv4_cidr_block = var.master_ipv4_cidr_block
   }
 
 
   master_authorized_networks_config {
-    cidr_blocks {
-      cidr_block   = "10.61.120.0/25"
-      display_name = "prod-common-cicd"
-    }
     dynamic "cidr_blocks" {
       for_each = var.master_authorized_networks
       content {
@@ -86,6 +78,10 @@ resource "google_container_cluster" "primary" {
 
   resource_labels = {
     env = "test"
+  }
+
+  lifecycle {
+    ignore_changes = [node_pool, node_config, initial_node_count, resource_labels["mesh_id"]]
   }
 }
 
