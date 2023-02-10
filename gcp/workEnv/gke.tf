@@ -13,6 +13,10 @@ data "google_compute_subnetwork" "subnetwork" {
   region  = var.region
 }
 
+resource "google_compute_global_address" "gke_ingress" {
+  name = "orypoc"
+}
+
 # GKE cluster
 resource "google_container_cluster" "primary" {
   provider = google-beta
