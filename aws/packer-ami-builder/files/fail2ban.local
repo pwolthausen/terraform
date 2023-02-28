@@ -1,0 +1,5 @@
+[Definition]
+
+loglevel = INFO
+logtarget = /var/log/fail2ban.log
+socket = /var/run/fail2ban/fail2ban.sock

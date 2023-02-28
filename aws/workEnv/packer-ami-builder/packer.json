@@ -1,0 +1,92 @@
+{
+  "variables": {
+    "region": "{{ env `AWS_REGION`   }}",
+    "access_key": "{{ env `AWS_ACCESS_KEY_ID` }}",
+    "secret_key": "{{ env `AWS_SECRET_ACCESS_KEY` }}",
+    "subnet_id": "{{ env `AWS_SUBNET_ID` }}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{ user `access_key` }}",
+      "secret_key": "{{ user `secret_key` }}",
+      "region": "{{ user `region`}}",
+      "instance_type": "t2.micro",
+      "source_ami": "ami-09e67e426f25ce0d7",
+      "associate_public_ip_address": "true",
+      "ssh_username": "ubuntu",
+      "ami_name": "ubuntu-hardened-bastion",
+      "ami_description": "Hardened bastion running Ubuntu 22.04",
+      "launch_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": "40"
+        }
+      ],
+      "subnet_id": "{{ user `subnet_id` }}",
+      "run_tags": {
+        "Name": "packer-bastion"
+      },
+      "tags": {
+        "Tool": "Packer",
+        "linuxos": "ubuntu-20.04",
+        "release": "20230301.1"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": "/usr/bin/cloud-init status --wait"
+    },
+    {
+      "type": "file",
+      "source": "./files/sudoers",
+      "destination": "~/sudoers"
+    },
+    {
+      "type": "file",
+      "source": "./files/jenkins.pub",
+      "destination": "~/jenkins.pub"
+    },
+    {
+      "type": "file",
+      "source": "./files/jail.local",
+      "destination": "~/jail.local"
+    },
+    {
+      "type": "file",
+      "source": "./files/fail2ban.local",
+      "destination": "~/fail2ban.local"
+    },
+    {
+      "type": "file",
+      "source": "./files/access.conf",
+      "destination": "~/access.conf"
+    },
+    {
+      "type": "file",
+      "source": "./files/ssh_config",
+      "destination": "~/ssh_config"
+    },
+    {
+      "type": "file",
+      "source": "./files/sshd_config",
+      "destination": "~/sshd_config"
+    },
+    {
+      "type": "file",
+      "source": "./files/cloudops.pub",
+      "destination": "~/cloudops.pub"
+    },
+    {
+      "type": "file",
+      "source": "./files/bashrc",
+      "destination": "~/bashrc"
+    },
+    {
+      "type": "shell",
+      "script": "./setup.sh"
+    }
+  ]
+}

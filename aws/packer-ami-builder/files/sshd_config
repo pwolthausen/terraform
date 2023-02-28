@@ -1,0 +1,51 @@
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+
+AllowAgentForwarding no
+AllowTcpForwarding local
+
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys
+AuthorizedKeysCommandUser nobody
+AuthorizedKeysFile .ssh/authorized_keys
+
+Banner /etc/issue
+
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr
+ChallengeResponseAuthentication yes
+ClientAliveInterval 600
+ClientAliveCountMax 0
+
+DenyUsers ubuntu www-data root daemon mail ftp postfix apache tcpdump proxysql nobody
+
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials no
+
+HostbasedAuthentication no
+
+IgnoreRhosts yes
+
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
+MaxAuthTries 3
+
+LoginGraceTime 60
+LogLevel INFO
+
+PasswordAuthentication no
+PermitEmptyPasswords no
+PermitRootLogin no
+PermitUserEnvironment no
+PubkeyAuthentication yes
+Protocol 2
+
+Subsystem sftp internal-sftp
+SyslogFacility AUTHPRIV
+
+TCPKeepAlive no
+UsePAM yes
+X11Forwarding no
