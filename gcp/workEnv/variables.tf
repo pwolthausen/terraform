@@ -30,6 +30,13 @@ variable "master_authorized_networks" {
   default     = {}
 }
 
+variable "subnets" {
+  type = map(object({
+    ip     = string
+    region = string
+  }))
+}
+
 # variable "net_hub_subnets" {
 #   description = "List of subnets to create in the network hub VPC. There should only be 1 subnet per required region for the interconnects or VPNs"
 #   type        = list(map({ subnet_name = string, subnet_ip = string, subnet_region = string, subnet_private_access = string, subnet_flow_logs = string, description = string }))
@@ -41,3 +48,39 @@ variable "master_authorized_networks" {
 #   type        = list(map(any))
 #   default     = []
 # }
+
+variable "prj_iam_bindings" {
+  description = "Defines the various IAM bindings for the project"
+  type = map(object({
+    roles = list(string)
+  }))
+  default = {}
+}
+
+variable "custom_roles" {
+  description = "Defines custom roles for the project"
+  type = map(object({
+    permissions = list(string)
+    description = string
+  }))
+  default = {}
+}
+
+variable "workload_identities" {
+  description = "Defines service accounts to use for workload identity in GKE"
+  type = map(object({
+    sa_description = string
+    sa_role        = string
+    sa_namespace   = string
+  }))
+  default = {}
+}
+
+variable "service_accounts" {
+  description = "Defines custom project wide service accounts"
+  type = map(object({
+    roles       = list(string)
+    description = string
+  }))
+  default = {}
+}

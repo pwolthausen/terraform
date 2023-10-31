@@ -95,7 +95,7 @@ module "core_network" {
   }
 }
 
-# ##Create network and subnets
+##Create network and subnets
 # module "alternate_network" {
 #   source  = "terraform-google-modules/network/google"
 #   version = "5.2.0"
@@ -155,25 +155,33 @@ module "core_network" {
 #   # }
 # }
 
-resource "google_compute_router" "router" {
-  name    = "pw-router"
-  region  = module.core_network.subnets_regions[0]
-  network = module.core_network.network_id
+# resource "google_compute_router" "router" {
+#   name    = "pw-router"
+#   region  = module.core_network.subnets_regions[0]
+#   network = module.core_network.network_id
 
-  bgp {
-    asn = 64514
-  }
-}
+#   bgp {
+#     asn = 64514
+#   }
+# }
 
-resource "google_compute_router_nat" "nat" {
-  name                               = "pw-router-nat"
-  router                             = google_compute_router.router.name
-  region                             = google_compute_router.router.region
-  nat_ip_allocate_option             = "AUTO_ONLY"
-  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+# resource "google_compute_router_nat" "nat" {
+#   name                               = "pw-router-nat"
+#   router                             = google_compute_router.router.name
+#   region                             = google_compute_router.router.region
+#   nat_ip_allocate_option             = "AUTO_ONLY"
+#   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
-  log_config {
-    enable = true
-    filter = "ERRORS_ONLY"
-  }
-}
+#   log_config {
+#     enable = true
+#     filter = "ERRORS_ONLY"
+#   }
+# }
+
+# module "network_network-peering" {
+#   source  = "terraform-google-modules/network/google//modules/network-peering"
+#   version = "6.0.1"
+
+#   local_network = module.core_network.network_self_link
+#   peer_network  = module.alternate_network.network_self_link
+# }
