@@ -52,7 +52,7 @@ resource "aws_route_table_association" "internet" {
 ### Private subnets ###
 #######################
 resource "aws_eip" "nat" {
-  vpc = true
+  domain = "vpc"
   tags = {
     Name = "${var.environment}-nat-ip"
   }
