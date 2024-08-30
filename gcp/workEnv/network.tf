@@ -1,7 +1,7 @@
 ##Create network and subnets
 module "core_network" {
   source  = "terraform-google-modules/network/google"
-  version = "5.2.0"
+  version = "9.0.0"
 
   project_id                             = var.project_id
   network_name                           = "vpc-pw-core"
@@ -43,12 +43,12 @@ module "core_network" {
       subnet_region         = "northamerica-northeast1"
       subnet_private_access = true
     },
-    # {
-    #   subnet_name           = "cork"
-    #   subnet_ip             = "192.168.2.0/24"
-    #   subnet_region         = "us-east1"
-    #   subnet_private_access = true
-    # },
+    {
+      subnet_name           = "cork"
+      subnet_ip             = "192.168.2.0/24"
+      subnet_region         = "us-east1"
+      subnet_private_access = true
+    },
     # {
     #   subnet_name           = "galway"
     #   subnet_ip             = "192.168.3.0/24"
@@ -92,6 +92,28 @@ module "core_network" {
         ip_cidr_range = "10.0.14.0/23"
       },
     ],
+    cork = [
+      {
+        range_name    = "pod-cidr"
+        ip_cidr_range = "10.1.0.0/21"
+      },
+      {
+        range_name    = "service-cidr-0"
+        ip_cidr_range = "10.1.8.0/23"
+      },
+      {
+        range_name    = "service-cidr-1"
+        ip_cidr_range = "10.1.10.0/23"
+      },
+      {
+        range_name    = "service-cidr-2"
+        ip_cidr_range = "10.1.12.0/23"
+      },
+      {
+        range_name    = "service-cidr-3"
+        ip_cidr_range = "10.1.14.0/23"
+      },
+    ]
   }
 }
 
@@ -184,4 +206,18 @@ module "core_network" {
 
 #   local_network = module.core_network.network_self_link
 #   peer_network  = module.alternate_network.network_self_link
+# }
+
+# module "private_service_access" {
+#   source  = "GoogleCloudPlatform/sql-db/google//modules/private_service_access"
+#   version = "20.0.0"
+
+#   project_id    = var.project_id
+#   vpc_network   = module.core_network.network_name
+#   address       = "192.168.56.0"
+#   prefix_length = "21"
+
+#   depends_on = [
+#     module.core_network,
+#   ]
 # }

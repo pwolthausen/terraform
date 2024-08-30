@@ -1,40 +1,19 @@
-# resource "google_compute_global_address" "private_ip_address" {
-#   provider = google-beta
-
-#   name          = "postgres-ip-address"
-#   purpose       = "VPC_PEERING"
-#   address_type  = "INTERNAL"
-#   prefix_length = 16
-#   network       = module.core_network.network_id
+# module "database" {
+#   source                      = "git@github.com:cloudops/cloudmc-infra-module-sql.git?ref=feat-sql20.0.0-add-user-flexibility"
+#   project_id                  = var.project_id
+#   region_id                   = "northamerica-northeast1"
+#   zone_id                     = "northamerica-northeast1-a"
+#   env                         = "dev"
+#   vpc_network                 = "vpc-pw-core"
+#   user_host_cidr              = "192.168.0.0/23"
+#   authorized_networks         = [{ name = "patty", value = "${var.my_ip}/32" }]
+#   cloudsql_private_range_name = module.private_service_access.google_compute_global_address_name
+#   availability_type           = "ZONAL"
 # }
 
-# resource "google_service_networking_connection" "private_vpc_connection" {
-#   provider = google-beta
-
-#   network                 = module.core_network.network_id
-#   service                 = "servicenetworking.googleapis.com"
-#   reserved_peering_ranges = [google_compute_global_address.private_ip_address.name]
-# }
-
-# resource "random_id" "db_name_suffix" {
-#   byte_length = 4
-# }
-
-# resource "google_sql_database_instance" "instance" {
-#   provider = google-beta
-
-#   name             = "ory-test-${random_id.db_name_suffix.hex}"
-#   region           = var.region
-#   database_version = "POSTGRES_14"
-
-#   depends_on          = [google_service_networking_connection.private_vpc_connection]
-#   deletion_protection = false
-
-#   settings {
-#     tier = "db-f1-micro"
-#     ip_configuration {
-#       ipv4_enabled    = false
-#       private_network = module.core_network.network_id
-#     }
-#   }
+# resource "google_sql_user" "iam_group_user" {
+#   project  = var.project_id
+#   name     = "ops-cmcaas-primes@cloudops.com"
+#   instance = " cloudmc-saas-sql-dev-nane1"
+#   type     = "CLOUD_IAM_GROUP"
 # }

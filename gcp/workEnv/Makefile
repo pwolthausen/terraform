@@ -11,5 +11,8 @@ apply: get-modules
 destroy: get-modules
 	terraform plan -destroy -out workEnv.tfplan
 
+out-plan:
+	terraform show workEnv.tfplan -no-color > workEnv_tfplan.txt
+
 refresh:
 	terraform refresh

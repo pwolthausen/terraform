@@ -1,0 +1,701 @@
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+  ~ update in-place
+ <= read (data resources)
+
+Terraform will perform the following actions:
+
+  # google_sql_user.iam_group_user will be created
+  + resource "google_sql_user" "iam_group_user" {
+      + host                    = (known after apply)
+      + id                      = (known after apply)
+      + instance                = " cloudmc-saas-sql-dev-nane1"
+      + name                    = "ops-cmcaas-primes@cloudops.com"
+      + project                 = "cloudops-pwolthausen-sandbox"
+      + sql_server_user_details = (known after apply)
+      + type                    = "CLOUD_IAM_GROUP"
+    }
+
+  # module.database.google_compute_network_peering_routes_config.peering_cloudsql_routes2 will be created
+  + resource "google_compute_network_peering_routes_config" "peering_cloudsql_routes2" {
+      + export_custom_routes = true
+      + id                   = (known after apply)
+      + import_custom_routes = true
+      + network              = "vpc-pw-core"
+      + peering              = "servicenetworking-googleapis-com"
+      + project              = "cloudops-pwolthausen-sandbox"
+    }
+
+  # module.database.google_storage_bucket_iam_member.sql_db_mysql will be created
+  + resource "google_storage_bucket_iam_member" "sql_db_mysql" {
+      + bucket = (known after apply)
+      + etag   = (known after apply)
+      + id     = (known after apply)
+      + member = "serviceAccount:p80612684543-uid06k@gcp-sa-cloud-sql.iam.gserviceaccount.com"
+      + role   = "roles/storage.admin"
+    }
+
+  # module.database.local_file.hourly_main will be created
+  + resource "local_file" "hourly_main" {
+      + content              = <<-EOT
+            import googleapiclient.discovery
+            import time
+            import base64
+            
+            BKP_RETENTION = 24
+            DATABASE = 'cloudmc-saas-sql-dev-nane1'
+            PROJECT = 'cloudops-pwolthausen-sandbox'
+            
+            def backup_job(event, context):
+            # def backup_job():
+                ### Script that maintains the last 10 backups in Cloud SQL for a given Database
+                ### A SVC account with CloudSQL Admin role is required
+                backupcount = 0
+                automatedbackupcount = 0
+                on_demand_backups = []
+            
+                sqladmin = googleapiclient.discovery.build('sqladmin', 'v1beta4')
+            
+                backupslist = sqladmin.backupRuns().list(project=PROJECT, instance=DATABASE, maxResults=100).execute()
+            
+                for backup in backupslist["items"]:
+                    if backup["type"] == "ON_DEMAND":
+                        backupcount += 1
+                        on_demand_backups.append(backup["id"])
+                    else:
+                        automatedbackupcount += 1
+                
+                print(len(backupslist["items"]))
+                print(len(on_demand_backups))
+                print(automatedbackupcount)
+            
+                if len(on_demand_backups) >= BKP_RETENTION:
+                    for backup in range(backupcount):
+                        oldestbackupid = on_demand_backups[backupcount - 1]
+                        print(oldestbackupid)
+                        print('deleting an old backup')
+                        sqladmin.backupRuns().delete(project=PROJECT, instance=DATABASE, id=oldestbackupid ).execute()
+                        backupcount -= 1
+                        if backupcount < BKP_RETENTION:
+                            time.sleep(40)
+                            print('inserting a new backup after deleting a backup')
+                            sqladmin.backupRuns().insert(project=PROJECT, instance=DATABASE).execute()
+                            break
+                else:
+                    print('too few backups, inserting new backup')
+                    sqladmin.backupRuns().insert(project=PROJECT, instance=DATABASE).execute()
+            #
+                return
+            
+            # SDG
+            # backup_job()
+        EOT
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "./backups/scripts/generated_hourly/main.py"
+      + id                   = (known after apply)
+    }
+
+  # module.database.local_file.hourly_requirements will be created
+  + resource "local_file" "hourly_requirements" {
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "./backups/scripts/generated_hourly/requirements.txt"
+      + id                   = (known after apply)
+      + source               = ".terraform/modules/database/backups/scripts/hourly/requirements.txt"
+    }
+
+  # module.database.local_file.weekly_main will be created
+  + resource "local_file" "weekly_main" {
+      + content              = <<-EOT
+            import googleapiclient.discovery
+            import time
+            import base64
+            import os
+            from datetime import datetime
+            
+            def export_job(event, context):
+            
+                BUCKET = f"gs://{os.environ.get('BUCKET')}/"
+                DATABASE = 'cloudmc-saas-sql-dev-nane1'
+                PROJECT = 'cloudops-pwolthausen-sandbox'
+                FILENAME = "Cloud_SQL_Export_%s" % (datetime.now().strftime("%Y-%m-%d (%H:%M)"))
+                REQUEST = {
+                    "exportContext": { # Database instance export context. # Contains details about the export operation.
+                      "databases": [],
+                      "uri": BUCKET+FILENAME,
+                      "csvExportOptions": { # Options for exporting data as CSV. *MySQL* and *PostgreSQL* instances only.
+                        "selectQuery": "", # The select query used to extract the data.
+                      },
+                      "offload": False, # Option for export offload.
+                      "fileType": "SQL", # The file type for the specified uri. *SQL*: The file contains SQL statements. *CSV*: The file contains CSV data. *BAK*: The file contains backup data for a SQL Server instance.
+                      "kind": "sql#exportContext", # This is always *sql#exportContext*.
+                      "sqlExportOptions": { # Options for exporting data as SQL statements.
+                        "tables": [],
+                        "schemaOnly": False, # Export only schemas.
+                        "mysqlExportOptions": { # Options for exporting from MySQL.
+                          "masterData": 42, # Option to include SQL statement required to set up replication. If set to *1*, the dump file includes a CHANGE MASTER TO statement with the binary log coordinates, and --set-gtid-purged is set to ON. If set to *2*, the CHANGE MASTER TO statement is written as a SQL comment and has no effect. If set to any value other than *1*, --set-gtid-purged is set to OFF.
+                        },
+                      },
+                    },
+                  }
+            
+                sqladmin = googleapiclient.discovery.build('sqladmin', 'v1beta4')
+            
+                sqladmin.instances().export(project=PROJECT, instance=DATABASE, body=REQUEST).execute()
+            
+                return
+            
+            # SDG
+        EOT
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "./backups/scripts/generated_weekly/main.py"
+      + id                   = (known after apply)
+    }
+
+  # module.database.local_file.weekly_requirements will be created
+  + resource "local_file" "weekly_requirements" {
+      + content_base64sha256 = (known after apply)
+      + content_base64sha512 = (known after apply)
+      + content_md5          = (known after apply)
+      + content_sha1         = (known after apply)
+      + content_sha256       = (known after apply)
+      + content_sha512       = (known after apply)
+      + directory_permission = "0777"
+      + file_permission      = "0777"
+      + filename             = "./backups/scripts/generated_weekly/requirements.txt"
+      + id                   = (known after apply)
+      + source               = ".terraform/modules/database/backups/scripts/weekly/requirements.txt"
+    }
+
+  # module.database.random_id.bucket will be created
+  + resource "random_id" "bucket" {
+      + b64_std     = (known after apply)
+      + b64_url     = (known after apply)
+      + byte_length = 2
+      + dec         = (known after apply)
+      + hex         = (known after apply)
+      + id          = (known after apply)
+      + prefix      = "clmc-sql-export-dev-nane1-"
+    }
+
+  # module.private_service_access.null_resource.dependency_setter will be created
+  + resource "null_resource" "dependency_setter" {
+      + id = (known after apply)
+    }
+
+  # module.database.module.bucket.google_storage_bucket.bucket will be created
+  + resource "google_storage_bucket" "bucket" {
+      + effective_labels            = (known after apply)
+      + force_destroy               = false
+      + id                          = (known after apply)
+      + location                    = "US"
+      + name                        = (known after apply)
+      + project                     = "cloudops-pwolthausen-sandbox"
+      + project_number              = (known after apply)
+      + public_access_prevention    = "inherited"
+      + rpo                         = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "STANDARD"
+      + terraform_labels            = (known after apply)
+      + uniform_bucket_level_access = true
+      + url                         = (known after apply)
+
+      + autoclass {
+          + enabled                = false
+          + terminal_storage_class = (known after apply)
+        }
+
+      + lifecycle_rule {
+          + action {
+              + type = "Delete"
+            }
+
+          + condition {
+              + age                   = 30
+              + matches_prefix        = []
+              + matches_storage_class = []
+              + matches_suffix        = []
+              + with_state            = (known after apply)
+            }
+        }
+
+      + soft_delete_policy {
+          + effective_time             = (known after apply)
+          + retention_duration_seconds = (known after apply)
+        }
+
+      + versioning {
+          + enabled = true
+        }
+
+      + website {
+          + main_page_suffix = (known after apply)
+          + not_found_page   = (known after apply)
+        }
+    }
+
+  # module.database.module.scheduled-function["hourly"].google_cloud_scheduler_job.job[0] will be created
+  + resource "google_cloud_scheduler_job" "job" {
+      + id        = (known after apply)
+      + name      = "hourly-cloudsql-backup-cloudmc-saas-dev-nane1"
+      + paused    = (known after apply)
+      + project   = "cloudops-pwolthausen-sandbox"
+      + region    = "northamerica-northeast1"
+      + schedule  = "0 */1 * * *"
+      + state     = (known after apply)
+      + time_zone = "America/New_York"
+
+      + pubsub_target {
+          + data       = "dGVzdA=="
+          + topic_name = "projects/cloudops-pwolthausen-sandbox/topics/hourly-cloudsql-backup-nane1"
+        }
+    }
+
+  # module.database.module.scheduled-function["hourly"].random_id.suffix will be created
+  + resource "random_id" "suffix" {
+      + b64_std     = (known after apply)
+      + b64_url     = (known after apply)
+      + byte_length = 4
+      + dec         = (known after apply)
+      + hex         = (known after apply)
+      + id          = (known after apply)
+    }
+
+  # module.database.module.scheduled-function["weekly"].google_cloud_scheduler_job.job[0] will be created
+  + resource "google_cloud_scheduler_job" "job" {
+      + id        = (known after apply)
+      + name      = "weekly-cloudsql-export-cloudmc-saas-dev-nane1"
+      + paused    = (known after apply)
+      + project   = "cloudops-pwolthausen-sandbox"
+      + region    = "northamerica-northeast1"
+      + schedule  = "5 0 * * SUN"
+      + state     = (known after apply)
+      + time_zone = "America/New_York"
+
+      + pubsub_target {
+          + data       = "dGVzdA=="
+          + topic_name = "projects/cloudops-pwolthausen-sandbox/topics/weekly-cloudsql-export-nane1"
+        }
+    }
+
+  # module.database.module.scheduled-function["weekly"].random_id.suffix will be created
+  + resource "random_id" "suffix" {
+      + b64_std     = (known after apply)
+      + b64_url     = (known after apply)
+      + byte_length = 4
+      + dec         = (known after apply)
+      + hex         = (known after apply)
+      + id          = (known after apply)
+    }
+
+  # module.database.module.sql-db_mysql.google_sql_database.additional_databases["cloudmc"] will be created
+  + resource "google_sql_database" "additional_databases" {
+      + charset         = "utf8mb4"
+      + collation       = "utf8mb4_0900_ai_ci"
+      + deletion_policy = "DELETE"
+      + id              = (known after apply)
+      + instance        = "cloudmc-saas-sql-dev-nane1"
+      + name            = "cloudmc"
+      + project         = "cloudops-pwolthausen-sandbox"
+      + self_link       = (known after apply)
+    }
+
+  # module.database.module.sql-db_mysql.google_sql_database.additional_databases["cloudmc_audit"] will be created
+  + resource "google_sql_database" "additional_databases" {
+      + charset         = "utf8mb4"
+      + collation       = "utf8mb4_0900_ai_ci"
+      + deletion_policy = "DELETE"
+      + id              = (known after apply)
+      + instance        = "cloudmc-saas-sql-dev-nane1"
+      + name            = "cloudmc_audit"
+      + project         = "cloudops-pwolthausen-sandbox"
+      + self_link       = (known after apply)
+    }
+
+  # module.database.module.sql-db_mysql.google_sql_database.additional_databases["cloudmc_content"] will be created
+  + resource "google_sql_database" "additional_databases" {
+      + charset         = "utf8mb4"
+      + collation       = "utf8mb4_0900_ai_ci"
+      + deletion_policy = "DELETE"
+      + id              = (known after apply)
+      + instance        = "cloudmc-saas-sql-dev-nane1"
+      + name            = "cloudmc_content"
+      + project         = "cloudops-pwolthausen-sandbox"
+      + self_link       = (known after apply)
+    }
+
+  # module.database.module.sql-db_mysql.google_sql_database.default[0] will be created
+  + resource "google_sql_database" "default" {
+      + collation       = (known after apply)
+      + deletion_policy = "DELETE"
+      + id              = (known after apply)
+      + instance        = "cloudmc-saas-sql-dev-nane1"
+      + name            = "default"
+      + project         = "cloudops-pwolthausen-sandbox"
+      + self_link       = (known after apply)
+    }
+
+  # module.database.module.sql-db_mysql.google_sql_database_instance.default will be updated in-place
+  ~ resource "google_sql_database_instance" "default" {
+        id                             = "cloudmc-saas-sql-dev-nane1"
+        name                           = "cloudmc-saas-sql-dev-nane1"
+        # (15 unchanged attributes hidden)
+
+      ~ settings {
+          ~ availability_type            = "REGIONAL" -> "ZONAL"
+            # (13 unchanged attributes hidden)
+
+            # (9 unchanged blocks hidden)
+        }
+
+      ~ timeouts {
+          ~ create = "10m" -> "30m"
+          ~ delete = "10m" -> "30m"
+          ~ update = "10m" -> "30m"
+        }
+    }
+
+  # module.database.module.sql-db_mysql.google_sql_user.default[0] will be created
+  + resource "google_sql_user" "default" {
+      + host                    = "192.168.0.0/23"
+      + id                      = (known after apply)
+      + instance                = "cloudmc-saas-sql-dev-nane1"
+      + name                    = "cloudmc"
+      + password                = (sensitive value)
+      + project                 = "cloudops-pwolthausen-sandbox"
+      + sql_server_user_details = (known after apply)
+    }
+
+  # module.database.module.sql-db_mysql.random_password.user-password will be created
+  + resource "random_password" "user-password" {
+      + bcrypt_hash = (sensitive value)
+      + id          = (known after apply)
+      + keepers     = {
+          + "name" = "cloudmc-saas-sql-dev-nane1"
+        }
+      + length      = 32
+      + lower       = true
+      + min_lower   = 1
+      + min_numeric = 1
+      + min_special = 0
+      + min_upper   = 1
+      + number      = true
+      + numeric     = true
+      + result      = (sensitive value)
+      + special     = false
+      + upper       = true
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.main.data.archive_file.main will be read during apply
+  # (depends on a resource or a module with changes pending)
+ <= data "archive_file" "main" {
+      + excludes            = []
+      + id                  = (known after apply)
+      + output_base64sha256 = (known after apply)
+      + output_base64sha512 = (known after apply)
+      + output_md5          = (known after apply)
+      + output_path         = "./backups/scripts/generated_hourly.zip"
+      + output_sha          = (known after apply)
+      + output_sha256       = (known after apply)
+      + output_sha512       = (known after apply)
+      + output_size         = (known after apply)
+      + source_dir          = "./backups/scripts/generated_hourly"
+      + type                = "zip"
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.main.google_cloudfunctions_function.main will be created
+  + resource "google_cloudfunctions_function" "main" {
+      + available_memory_mb           = 256
+      + description                   = "Processes log export events provided through a Pub/Sub topic subscription."
+      + docker_registry               = (known after apply)
+      + effective_labels              = (known after apply)
+      + entry_point                   = "backup_job"
+      + environment_variables         = (known after apply)
+      + https_trigger_security_level  = (known after apply)
+      + https_trigger_url             = (known after apply)
+      + id                            = (known after apply)
+      + ingress_settings              = "ALLOW_ALL"
+      + max_instances                 = 3000
+      + name                          = "hourly-cloudsql-backup-cloudmc-saas-dev-nane1"
+      + project                       = "cloudops-pwolthausen-sandbox"
+      + region                        = "northamerica-northeast1"
+      + runtime                       = "python38"
+      + service_account_email         = "cloudsqlbackups@cloudops-pwolthausen-sandbox.iam.gserviceaccount.com"
+      + source_archive_bucket         = "hourly-cloudsql-backup-cloudmc-saas-dev-nane1"
+      + source_archive_object         = (known after apply)
+      + status                        = (known after apply)
+      + terraform_labels              = (known after apply)
+      + timeout                       = 60
+      + version_id                    = (known after apply)
+      + vpc_connector_egress_settings = (known after apply)
+
+      + event_trigger {
+          + event_type = "google.pubsub.topic.publish"
+          + resource   = "hourly-cloudsql-backup-nane1"
+
+          + failure_policy {
+              + retry = false
+            }
+        }
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.main.google_storage_bucket.main[0] will be created
+  + resource "google_storage_bucket" "main" {
+      + effective_labels            = (known after apply)
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "NORTHAMERICA-NORTHEAST1"
+      + name                        = "hourly-cloudsql-backup-cloudmc-saas-dev-nane1"
+      + project                     = "cloudops-pwolthausen-sandbox"
+      + project_number              = (known after apply)
+      + public_access_prevention    = (known after apply)
+      + rpo                         = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "REGIONAL"
+      + terraform_labels            = (known after apply)
+      + uniform_bucket_level_access = true
+      + url                         = (known after apply)
+
+      + soft_delete_policy {
+          + effective_time             = (known after apply)
+          + retention_duration_seconds = (known after apply)
+        }
+
+      + versioning {
+          + enabled = (known after apply)
+        }
+
+      + website {
+          + main_page_suffix = (known after apply)
+          + not_found_page   = (known after apply)
+        }
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.main.google_storage_bucket_object.main will be created
+  + resource "google_storage_bucket_object" "main" {
+      + bucket              = "hourly-cloudsql-backup-cloudmc-saas-dev-nane1"
+      + content             = (sensitive value)
+      + content_disposition = "attachment"
+      + content_type        = "application/zip"
+      + crc32c              = (known after apply)
+      + detect_md5hash      = "different hash"
+      + id                  = (known after apply)
+      + kms_key_name        = (known after apply)
+      + md5hash             = (known after apply)
+      + media_link          = (known after apply)
+      + name                = (known after apply)
+      + output_name         = (known after apply)
+      + self_link           = (known after apply)
+      + source              = "./backups/scripts/generated_hourly.zip"
+      + storage_class       = (known after apply)
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.main.null_resource.dependent_files will be created
+  + resource "null_resource" "dependent_files" {
+      + id       = (known after apply)
+      + triggers = {}
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.pubsub_topic.data.google_project.project will be read during apply
+  # (depends on a resource or a module with changes pending)
+ <= data "google_project" "project" {
+      + auto_create_network = (known after apply)
+      + billing_account     = (known after apply)
+      + effective_labels    = (known after apply)
+      + folder_id           = (known after apply)
+      + id                  = (known after apply)
+      + labels              = (known after apply)
+      + name                = (known after apply)
+      + number              = (known after apply)
+      + org_id              = (known after apply)
+      + project_id          = "cloudops-pwolthausen-sandbox"
+      + skip_delete         = (known after apply)
+      + terraform_labels    = (known after apply)
+    }
+
+  # module.database.module.scheduled-function["hourly"].module.pubsub_topic.google_pubsub_topic.topic[0] will be created
+  + resource "google_pubsub_topic" "topic" {
+      + effective_labels = (known after apply)
+      + id               = (known after apply)
+      + name             = "hourly-cloudsql-backup-nane1"
+      + project          = "cloudops-pwolthausen-sandbox"
+      + terraform_labels = (known after apply)
+
+      + message_storage_policy {
+          + allowed_persistence_regions = (known after apply)
+        }
+
+      + schema_settings {
+          + encoding = (known after apply)
+          + schema   = (known after apply)
+        }
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.main.data.archive_file.main will be read during apply
+  # (depends on a resource or a module with changes pending)
+ <= data "archive_file" "main" {
+      + excludes            = []
+      + id                  = (known after apply)
+      + output_base64sha256 = (known after apply)
+      + output_base64sha512 = (known after apply)
+      + output_md5          = (known after apply)
+      + output_path         = "./backups/scripts/generated_weekly.zip"
+      + output_sha          = (known after apply)
+      + output_sha256       = (known after apply)
+      + output_sha512       = (known after apply)
+      + output_size         = (known after apply)
+      + source_dir          = "./backups/scripts/generated_weekly"
+      + type                = "zip"
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.main.google_cloudfunctions_function.main will be created
+  + resource "google_cloudfunctions_function" "main" {
+      + available_memory_mb           = 256
+      + description                   = "Processes log export events provided through a Pub/Sub topic subscription."
+      + docker_registry               = (known after apply)
+      + effective_labels              = (known after apply)
+      + entry_point                   = "export_job"
+      + environment_variables         = (known after apply)
+      + https_trigger_security_level  = (known after apply)
+      + https_trigger_url             = (known after apply)
+      + id                            = (known after apply)
+      + ingress_settings              = "ALLOW_ALL"
+      + max_instances                 = 3000
+      + name                          = "weekly-cloudsql-export-cloudmc-saas-dev-nane1"
+      + project                       = "cloudops-pwolthausen-sandbox"
+      + region                        = "northamerica-northeast1"
+      + runtime                       = "python38"
+      + service_account_email         = "cloudsqlbackups@cloudops-pwolthausen-sandbox.iam.gserviceaccount.com"
+      + source_archive_bucket         = "weekly-cloudsql-export-cloudmc-saas-dev-nane1"
+      + source_archive_object         = (known after apply)
+      + status                        = (known after apply)
+      + terraform_labels              = (known after apply)
+      + timeout                       = 60
+      + version_id                    = (known after apply)
+      + vpc_connector_egress_settings = (known after apply)
+
+      + event_trigger {
+          + event_type = "google.pubsub.topic.publish"
+          + resource   = "weekly-cloudsql-export-nane1"
+
+          + failure_policy {
+              + retry = false
+            }
+        }
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.main.google_storage_bucket.main[0] will be created
+  + resource "google_storage_bucket" "main" {
+      + effective_labels            = (known after apply)
+      + force_destroy               = true
+      + id                          = (known after apply)
+      + location                    = "NORTHAMERICA-NORTHEAST1"
+      + name                        = "weekly-cloudsql-export-cloudmc-saas-dev-nane1"
+      + project                     = "cloudops-pwolthausen-sandbox"
+      + project_number              = (known after apply)
+      + public_access_prevention    = (known after apply)
+      + rpo                         = (known after apply)
+      + self_link                   = (known after apply)
+      + storage_class               = "REGIONAL"
+      + terraform_labels            = (known after apply)
+      + uniform_bucket_level_access = true
+      + url                         = (known after apply)
+
+      + soft_delete_policy {
+          + effective_time             = (known after apply)
+          + retention_duration_seconds = (known after apply)
+        }
+
+      + versioning {
+          + enabled = (known after apply)
+        }
+
+      + website {
+          + main_page_suffix = (known after apply)
+          + not_found_page   = (known after apply)
+        }
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.main.google_storage_bucket_object.main will be created
+  + resource "google_storage_bucket_object" "main" {
+      + bucket              = "weekly-cloudsql-export-cloudmc-saas-dev-nane1"
+      + content             = (sensitive value)
+      + content_disposition = "attachment"
+      + content_type        = "application/zip"
+      + crc32c              = (known after apply)
+      + detect_md5hash      = "different hash"
+      + id                  = (known after apply)
+      + kms_key_name        = (known after apply)
+      + md5hash             = (known after apply)
+      + media_link          = (known after apply)
+      + name                = (known after apply)
+      + output_name         = (known after apply)
+      + self_link           = (known after apply)
+      + source              = "./backups/scripts/generated_weekly.zip"
+      + storage_class       = (known after apply)
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.main.null_resource.dependent_files will be created
+  + resource "null_resource" "dependent_files" {
+      + id       = (known after apply)
+      + triggers = {}
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.pubsub_topic.data.google_project.project will be read during apply
+  # (depends on a resource or a module with changes pending)
+ <= data "google_project" "project" {
+      + auto_create_network = (known after apply)
+      + billing_account     = (known after apply)
+      + effective_labels    = (known after apply)
+      + folder_id           = (known after apply)
+      + id                  = (known after apply)
+      + labels              = (known after apply)
+      + name                = (known after apply)
+      + number              = (known after apply)
+      + org_id              = (known after apply)
+      + project_id          = "cloudops-pwolthausen-sandbox"
+      + skip_delete         = (known after apply)
+      + terraform_labels    = (known after apply)
+    }
+
+  # module.database.module.scheduled-function["weekly"].module.pubsub_topic.google_pubsub_topic.topic[0] will be created
+  + resource "google_pubsub_topic" "topic" {
+      + effective_labels = (known after apply)
+      + id               = (known after apply)
+      + name             = "weekly-cloudsql-export-nane1"
+      + project          = "cloudops-pwolthausen-sandbox"
+      + terraform_labels = (known after apply)
+
+      + message_storage_policy {
+          + allowed_persistence_regions = (known after apply)
+        }
+
+      + schema_settings {
+          + encoding = (known after apply)
+          + schema   = (known after apply)
+        }
+    }
+
+Plan: 30 to add, 1 to change, 0 to destroy.
