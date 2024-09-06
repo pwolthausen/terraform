@@ -13,5 +13,3 @@ provider "aws" {
   region  = "ca-central-1"
   profile = "aptum"
 }
-
-data "aws_availability_zones" "available" {}
