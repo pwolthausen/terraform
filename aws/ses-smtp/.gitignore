@@ -1,0 +1,9 @@
+.terraform/
+*.backup
+credentials.json
+*.tfplan
+*.tfstate
+*.tfvars
+*.terraform.*
+tfmodules
+tfplan.txt

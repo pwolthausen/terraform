@@ -1,0 +1,27 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/zricethezav/gitleaks
+  rev: v8.11.0
+  hooks:
+  - id: gitleaks-docker
+    name: Detect hardcoded secrets
+    description: Detect hardcoded secrets using Gitleaks
+    entry: zricethezav/gitleaks protect --verbose --redact --staged
+    language: docker_image
+- repo: local
+  hooks:
+    - id: terraform-fmt
+      name: terraform-fmt
+      language: docker_image
+      entry: hashicorp/terraform:1.3.6
+      args: ["fmt"]
+      pass_filenames: false
+- repo: local
+  hooks:
+    - id: terraform-docs
+      name: terraform-docs
+      language: docker_image
+      entry: quay.io/terraform-docs/terraform-docs:latest
+      args: ["markdown", "table", "--output-file", "README.md", "./"]
+      pass_filenames: false

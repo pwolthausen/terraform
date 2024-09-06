@@ -16,7 +16,11 @@ data "aws_region" "current" {}
 data "aws_availability_zones" "available" {}
 
 data "aws_vpc" "selected" {
-  id = "vpc-005b47880a57e0950"
+  id = var.vpc_id
+}
+
+variable "vpc_id" {
+  type = string
 }
 
 data "aws_subnets" "selected" {
