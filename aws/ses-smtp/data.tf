@@ -21,12 +21,7 @@ data "aws_subnet" "selected" {
 
 data "aws_region" "current" {}
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 locals {
-  subnets            = data.aws_subnet.selected
-  endpoint_subnets   = var.ses_endpoint_failover ? slice(local.subnets, 0, 2) : [local.subnets[0]]
-  availability_zones = data.aws_availability_zones.available.names
+  subnets          = data.aws_subnet.selected
+  endpoint_subnets = var.ses_endpoint_failover ? slice(local.subnets, 0, 2) : [local.subnets[0]]
 }
