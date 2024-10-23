@@ -51,6 +51,10 @@ resource "aws_route53_record" "custom_mail_from_mx" {
   records = ["10 feedback-smtp.${join("", data.aws_region.current[*].name)}.amazonses.com"]
 }
 
+resource "aws_sesv2_dedicated_ip_pool" "ses_smtp" {
+  pool_name = var.name
+}
+
 #-----------------------------------------------------------------------------------------------------------------------
 # CREATE A USER FOR SMTP
 #-----------------------------------------------------------------------------------------------------------------------
@@ -139,3 +143,37 @@ resource "aws_vpc_security_group_ingress_rule" "ses_smtp_587" {
   to_port           = 587
 }
 
+#-----------------------------------------------------------------------------------------------------------------------
+#  SES OBSERVABILITY
+#-----------------------------------------------------------------------------------------------------------------------
+
+resource "aws_ses_configuration_set" "ses_smtp_events" {
+  name                       = var.name
+  reputation_metrics_enabled = true
+}
+
+resource "aws_ses_event_destination" "ses_smtp_sending_failure" {
+  name                   = "${var.name}-sending-failure"
+  configuration_set_name = aws_ses_configuration_set.ses_smtp_events.name
+  enabled                = true
+  matching_types         = ["bounce", "delivery", "renderingFailure"]
+
+  cloudwatch_destination {
+    default_value  = "delivery_failure"
+    dimension_name = "ses_email_attempt"
+    value_source   = "emailHeader"
+  }
+}
+
+resource "aws_ses_event_destination" "ses_smtp_reputation" {
+  name                   = "${var.name}-reputation-failure"
+  configuration_set_name = aws_ses_configuration_set.ses_smtp_events.name
+  enabled                = true
+  matching_types         = ["reject", "complaint"]
+
+  cloudwatch_destination {
+    default_value  = "reputation_failure"
+    dimension_name = "ses_email_attempt"
+    value_source   = "emailHeader"
+  }
+}

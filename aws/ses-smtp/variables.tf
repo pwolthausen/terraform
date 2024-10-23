@@ -9,6 +9,12 @@ variable "domain" {
   description = "Domain used for SES mail sending. Domain DNS must be in Route53 in the same account as the SES"
 }
 
+variable "private_zone" {
+  type        = bool
+  description = "Declares whether the route 53 zone is private or not. Defaults to false."
+  default     = false
+}
+
 variable "behavior_on_mx_failure" {
   type        = string
   description = "The action that you want Amazon SES to take if it cannot successfully read the required MX record when you send an email."

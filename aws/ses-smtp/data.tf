@@ -1,5 +1,6 @@
 data "aws_route53_zone" "selected" {
-  name = var.domain
+  name         = var.domain
+  private_zone = var.private_zone
 }
 
 data "aws_vpc" "selected" {
@@ -11,6 +12,10 @@ data "aws_subnets" "selected" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.selected.id]
+  }
+  filter {
+    name   = "tag:Name"
+    values = ["filtered*"]
   }
 }
 

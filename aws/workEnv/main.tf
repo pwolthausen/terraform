@@ -15,26 +15,26 @@ data "aws_region" "current" {}
 
 data "aws_availability_zones" "available" {}
 
-data "aws_vpc" "selected" {
-  id = var.vpc_id
-}
+# data "aws_vpc" "selected" {
+#   id = var.vpc_id
+# }
 
-variable "vpc_id" {
-  type = string
-}
+# variable "vpc_id" {
+#   type = string
+# }
 
-data "aws_subnets" "selected" {
+# data "aws_subnets" "selected" {
 
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.selected.id]
-  }
-}
+#   filter {
+#     name   = "vpc-id"
+#     values = [data.aws_vpc.selected.id]
+#   }
+# }
 
-data "aws_subnet" "selected" {
-  count = length(data.aws_subnets.selected.ids)
-  id    = data.aws_subnets.selected.ids[count.index]
-}
+# data "aws_subnet" "selected" {
+#   count = length(data.aws_subnets.selected.ids)
+#   id    = data.aws_subnets.selected.ids[count.index]
+# }
 
 locals {
   availability_zones = data.aws_availability_zones.available.names
@@ -42,12 +42,12 @@ locals {
     Environment = "pw-sandbox"
     Owner       = "pwolthausen"
   }
-  subnets          = data.aws_subnet.selected
-  endpoint_subnets = var.ses_endpoint_failover ? slice(local.subnets, 0, 2) : [local.subnets[0]]
+  # subnets          = data.aws_subnet.selected
+  # endpoint_subnets = var.ses_endpoint_failover ? slice(local.subnets, 0, 2) : [local.subnets[0]]
 }
 
-variable "ses_endpoint_failover" {
-  type        = bool
-  description = "Determines whether the SES VPC endpoint is deployed in a single AZ or multiple"
-  default     = true
-}
+# variable "ses_endpoint_failover" {
+#   type        = bool
+#   description = "Determines whether the SES VPC endpoint is deployed in a single AZ or multiple"
+#   default     = true
+# }

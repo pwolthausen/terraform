@@ -11,7 +11,7 @@ terraform {
 
 provider "aws" {
   region  = "ca-central-1"
-  profile = "aptum"
+  profile = "default"
 }
 
 
